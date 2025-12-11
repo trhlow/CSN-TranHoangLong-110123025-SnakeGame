@@ -1,0 +1,38 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1536e59e077a6da4fb663ebc60d74a73, type: 3}
+  m_Name: GameColorPalette
+  m_EditorClassIdentifier: Assembly-CSharp::ColorPalette
+  player1Primary: {r: 0, g: 1, b: 0, a: 1}
+  player1Secondary: {r: 0.4, g: 1, b: 0.4, a: 1}
+  player1Glow: {r: 0, g: 1, b: 0, a: 0.5}
+  player2Primary: {r: 1, g: 0, b: 1, a: 1}
+  player2Secondary: {r: 1, g: 0.4, b: 1, a: 1}
+  player2Glow: {r: 1, g: 0, b: 1, a: 0.5}
+  aiPrimary: {r: 0, g: 1, b: 1, a: 1}
+  aiSecondary: {r: 0.4, g: 1, b: 1, a: 1}
+  aiGlow: {r: 0, g: 1, b: 1, a: 0.5}
+  foodCommon: {r: 1, g: 0.13, b: 0.27, a: 1}
+  foodRare: {r: 1, g: 0.84, b: 0, a: 1}
+  foodEpic: {r: 0, g: 1, b: 1, a: 1}
+  gridMain: {r: 0, g: 1, b: 1, a: 0.3}
+  gridSub: {r: 0, g: 1, b: 1, a: 0.1}
+  gridBorder: {r: 1, g: 1, b: 1, a: 0.8}
+  backgroundTop: {r: 0.06, g: 0.05, b: 0.16, a: 1}
+  backgroundMid: {r: 0.19, g: 0.17, b: 0.39, a: 1}
+  backgroundBot: {r: 0.14, g: 0.14, b: 0.24, a: 1}
+  uiAccent: {r: 0, g: 1, b: 1, a: 1}
+  uiPrimary: {r: 0.2, g: 0.56, b: 0.86, a: 1}
+  uiDanger: {r: 0.91, g: 0.3, b: 0.24, a: 1}
+  uiSuccess: {r: 0.18, g: 0.8, b: 0.44, a: 1}
+  uiText: {r: 1, g: 1, b: 1, a: 1}
+  uiTextDark: {r: 0.2, g: 0.2, b: 0.2, a: 1}
