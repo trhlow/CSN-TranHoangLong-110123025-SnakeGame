@@ -20,6 +20,15 @@ public class GameManager : MonoBehaviour
     [SerializeField] private float gameTimeLimit = 300f;
     [SerializeField] private bool hasTimeLimit = false;
 
+    [Header("Play Area Bounds")]
+    [SerializeField] private int playAreaMinX = -15;
+    [SerializeField] private int playAreaMaxX = 15;
+    [SerializeField] private int playAreaMinY = -6;
+    [SerializeField] private int playAreaMaxY = 6;
+
+    [Header("UI References")]
+    [SerializeField] private GameObject gameOverPanel;
+
     public UnityEvent<GameState> OnGameStateChanged = new UnityEvent<GameState>();
     private List<SnakeController> snakes = new List<SnakeController>();
     private GameState currentState = GameState.MainMenu;
@@ -32,7 +41,6 @@ public class GameManager : MonoBehaviour
 
     private void Awake()
     {
-        // Singleton pattern
         if (Instance != null && Instance != this)
         {
             Destroy(gameObject);
@@ -41,7 +49,6 @@ public class GameManager : MonoBehaviour
         Instance = this;
         DontDestroyOnLoad(gameObject);
 
-        // Đọc GameMode lưu ở MainMenu nếu có
         if (PlayerPrefs.HasKey("GameMode"))
         {
             gameMode = (GameMode)PlayerPrefs.GetInt("GameMode");
@@ -50,14 +57,24 @@ public class GameManager : MonoBehaviour
 
     private void Start()
     {
+        if (gameOverPanel != null)
+            gameOverPanel.SetActive(false);
+
         SpawnAllSnakes();
         ChangeState(GameState.Playing);
         gameTime = 0f;
+
+        if (FoodSpawner.Instance != null)
+        {
+            FoodSpawner.Instance.SpawnInitialFoods(5);
+        }
     }
 
     private void Update()
     {
         if (currentState != GameState.Playing) return;
+
+        UpdateFoodPositionsForSnakes();
 
         gameTime += Time.deltaTime;
 
@@ -71,7 +88,29 @@ public class GameManager : MonoBehaviour
             TogglePause();
     }
 
-    // --- UI/Menu CALL THESE ---
+    private void UpdateFoodPositionsForSnakes()
+    {
+        if (FoodSpawner.Instance == null) return;
+
+        foreach (var snake in snakes)
+        {
+            if (snake == null || snake.IsDead) continue;
+
+            Vector2Int headPos = snake.GetHeadPosition();
+            GameObject nearestFood = FoodSpawner.Instance.GetNearestFood(headPos);
+
+            if (nearestFood != null)
+            {
+                Vector3 foodWorldPos = nearestFood.transform.position;
+                Vector2Int foodGridPos = new Vector2Int(
+                    Mathf.RoundToInt(foodWorldPos.x),
+                    Mathf.RoundToInt(foodWorldPos.y)
+                );
+                snake.CurrentFoodPos = foodGridPos;
+            }
+        }
+    }
+
     public void SetGameMode(GameMode mode)
     {
         gameMode = mode;
@@ -115,6 +154,12 @@ public class GameManager : MonoBehaviour
         if (currentState == newState) return;
         currentState = newState;
         OnGameStateChanged?.Invoke(newState);
+
+        if (newState == GameState.GameOver)
+        {
+            ShowGameOver();
+        }
+
         Debug.Log($"Game state changed to: {newState}");
     }
 
@@ -125,27 +170,66 @@ public class GameManager : MonoBehaviour
         else if (currentState == GameState.Paused)
             ChangeState(GameState.Playing);
     }
-    // --- End UI/Menu ---
 
-    // --- SNAKE SPAWN ---
+    // ✅ SỬA: KHÔNG DÙNG Time.timeScale = 0
+    private void ShowGameOver()
+    {
+        if (gameOverPanel != null)
+        {
+            gameOverPanel.SetActive(true);
+
+            UnityEngine.UI.Text[] texts = gameOverPanel.GetComponentsInChildren<UnityEngine.UI.Text>();
+            foreach (var text in texts)
+            {
+                if (text.name.Contains("Score") || text.name.Contains("Final"))
+                {
+                    int highestScore = GetHighestScore();
+                    text.text = $"Final Score: {highestScore}";
+                }
+            }
+        }
+
+        // ✅ KHÔNG DỪNG TIME - Để UI button hoạt động
+        // Time.timeScale = 0f; // XÓA DÒNG NÀY!
+
+        // Stop snakes thay vì freeze time
+        foreach (var snake in snakes)
+        {
+            if (snake != null)
+            {
+                snake.enabled = false; // Disable snake movement
+            }
+        }
+
+        // Stop food spawning
+        if (FoodSpawner.Instance != null)
+        {
+            FoodSpawner.Instance.StopAutoSpawn();
+        }
+    }
+
     private void SpawnAllSnakes()
     {
         ClearSnakes();
 
         var snake1 = SpawnSnake(playerSnakePrefab, 1, Color.green, false, "Player 1");
         snake1.OnSnakeDied += OnSnakeDied;
+        snake1.OnSnakeEatFood += OnSnakeEatFood;
         snakes.Add(snake1);
 
         if (gameMode == GameMode.Multiplayer)
         {
-            var snake2 = SpawnSnake(playerSnakePrefab, 2, Color.magenta, false, "Player 2", KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow);
+            var snake2 = SpawnSnake(playerSnakePrefab, 2, Color.magenta, false, "Player 2",
+                KeyCode.UpArrow, KeyCode.DownArrow, KeyCode.LeftArrow, KeyCode.RightArrow);
             snake2.OnSnakeDied += OnSnakeDied;
+            snake2.OnSnakeEatFood += OnSnakeEatFood;
             snakes.Add(snake2);
         }
         else if (gameMode == GameMode.VsAI)
         {
             var ai = SpawnSnake(aiSnakePrefab != null ? aiSnakePrefab : playerSnakePrefab, 3, Color.cyan, true, "AI Bot");
             ai.OnSnakeDied += OnSnakeDied;
+            ai.OnSnakeEatFood += OnSnakeEatFood;
             snakes.Add(ai);
         }
     }
@@ -156,7 +240,10 @@ public class GameManager : MonoBehaviour
         Vector3 pos = GetSpawnPos(id);
         var go = Instantiate(prefab, pos, Quaternion.identity);
         var snake = go.GetComponent<SnakeController>();
+
+        snake.SetPlayArea(playAreaMinX, playAreaMaxX, playAreaMinY, playAreaMaxY);
         snake.Setup(id, color, isAI, name, keyUp, keyDown, keyLeft, keyRight);
+
         return snake;
     }
 
@@ -178,6 +265,7 @@ public class GameManager : MonoBehaviour
             if (snake != null)
             {
                 snake.OnSnakeDied -= OnSnakeDied;
+                snake.OnSnakeEatFood -= OnSnakeEatFood;
                 Destroy(snake.gameObject);
             }
         }
@@ -186,8 +274,47 @@ public class GameManager : MonoBehaviour
 
     private void OnSnakeDied(SnakeController snake)
     {
-        Debug.Log($"Snake {snake.PlayerID} ({snake.PlayerName}) died!");
-        // Xử lý endgame/update UI tại đây
+        Debug.Log($"<color=red>Snake {snake.PlayerID} ({snake.PlayerName}) died! Score: {snake.Score}</color>");
+
+        if (FoodSpawner.Instance != null)
+        {
+            FoodSpawner.Instance.StopAutoSpawn();
+        }
+
+        ChangeState(GameState.GameOver);
+    }
+
+    private void OnSnakeEatFood()
+    {
+        Debug.Log("<color=yellow>🍎 Snake ate food!</color>");
+
+        if (FoodSpawner.Instance != null)
+        {
+            List<GameObject> allFoods = FoodSpawner.Instance.GetAllFoods();
+            foreach (var snake in snakes)
+            {
+                if (snake == null || snake.IsDead) continue;
+
+                Vector2Int headPos = snake.GetHeadPosition();
+                foreach (var food in allFoods)
+                {
+                    if (food == null) continue;
+
+                    Vector2Int foodPos = new Vector2Int(
+                        Mathf.RoundToInt(food.transform.position.x),
+                        Mathf.RoundToInt(food.transform.position.y)
+                    );
+
+                    if (foodPos == headPos)
+                    {
+                        FoodSpawner.Instance.RemoveFood(food);
+                        Destroy(food);
+                        FoodSpawner.Instance.SpawnRandomFood();
+                        return;
+                    }
+                }
+            }
+        }
     }
 
     public SnakeController GetSnakeByID(int id)
@@ -203,9 +330,6 @@ public class GameManager : MonoBehaviour
         return max;
     }
 
-    // --- END SNAKE SPAWN ---
-
-    // --- GAME END LOGIC ---
     private void EndGameTimeLimit()
     {
         Debug.Log("End game by time limit!");

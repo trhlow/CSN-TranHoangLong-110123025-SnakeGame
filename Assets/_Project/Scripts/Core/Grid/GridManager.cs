@@ -8,6 +8,13 @@ public class GridManager : Singleton<GridManager>
     [SerializeField] private int gridHeight = 30;
     [SerializeField] private float cellSize = 0.5f;
 
+    // Thêm vào GridManager
+    [SerializeField] private int playMinX = 12; // ví dụ: lề trái
+    [SerializeField] private int playMaxX = 26; // ví dụ: lề phải (12+15-1=26)
+    [SerializeField] private int playMinY = 10; // ví dụ: lề dưới
+    [SerializeField] private int playMaxY = 17; // ví dụ: lề trên (10+8-1=17)
+    public RectInt PlayArea => new RectInt(playMinX, playMinY, playMaxX - playMinX + 1, playMaxY - playMinY + 1);
+
     [Header("Visual Settings")]
     [SerializeField] private bool showGrid = true;
     [SerializeField] private Color gridColor = new Color(0f, 1f, 1f, 0.3f);
@@ -61,6 +68,11 @@ public class GridManager : Singleton<GridManager>
     {
         return gridPosition.x >= 0 && gridPosition.x < gridWidth &&
                gridPosition.y >= 0 && gridPosition.y < gridHeight;
+    }
+    public bool IsInPlayArea(Vector2Int gridPosition)
+    {
+        return gridPosition.x >= playMinX && gridPosition.x <= playMaxX &&
+               gridPosition.y >= playMinY && gridPosition.y <= playMaxY;
     }
 
     public bool IsOccupied(Vector2Int gridPosition)
