@@ -12,7 +12,6 @@ GameObject:
   - component: {fileID: 7048641370927951812}
   - component: {fileID: 7635714031018509817}
   - component: {fileID: 8539595917210212966}
-  - component: {fileID: 2853339761150831778}
   m_Layer: 0
   m_Name: Food_Epic
   m_TagString: Food
@@ -138,30 +137,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 3123505075699556740}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a559ef68b929b8a47a9e1c6bec896e74, type: 3}
+  m_Script: {fileID: 11500000, guid: a8702d25658b6b34f82f2c29e429b898, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::Food
-  rarity: 2
-  points: 5
-  spawnChance: 0.05
+  rarity: 0
+  points: 10
+  spawnChance: 0.7
   eatSound: {fileID: 0}
-  eatEffectPrefab: {fileID: 0}
---- !u!114 &2853339761150831778
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 3123505075699556740}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: faa48241a7b4fdc4bae0b384ba3f7b33, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::FoodAnimation
-  floatSpeed: 1
-  floatAmount: 0.3
-  rotate: 1
-  rotateSpeed: 150
-  scalePulse: 1
-  pulseSpeed: 2
-  pulseAmount: 0.1
+  eatEffectPrefab: {fileID: 1790190818183737523, guid: b4c6adb2c86f2a34e876e771b91db9ed, type: 3}
