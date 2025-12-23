@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 16652059}
   - component: {fileID: 16652061}
   - component: {fileID: 16652060}
+  - component: {fileID: 16652062}
   m_Layer: 5
   m_Name: ScoreLabel
   m_TagString: Untagged
@@ -255,6 +256,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 16652058}
   m_CullTransparentMesh: 1
+--- !u!114 &16652062
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 16652058}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: game.score
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
+  autoSwitchFont: 1
 --- !u!1 &52747271
 GameObject:
   m_ObjectHideFlags: 0
@@ -291,8 +308,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 250, y: -310}
-  m_SizeDelta: {x: 500, y: 100}
+  m_AnchoredPosition: {x: 350, y: -435}
+  m_SizeDelta: {x: 600, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &52747273
 MonoBehaviour:
@@ -338,7 +355,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 559372461}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: LoadMainMenu
         m_Mode: 1
@@ -370,7 +387,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2530564911472380330, guid: 7e6cb3d2549fa0441959bc86e92c265d, type: 3}
+  m_Sprite: {fileID: 2712449135209075502, guid: 29e5bcbaf8875714c987774cabe1f5c4, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -626,7 +643,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
-  localizationKey: 
+  localizationKey: ui.game_over.defeat
   updateOnEnable: 1
   vietnameseFont: {fileID: 11400000, guid: f61dee659a41ef546b255d69e8b07c5c, type: 2}
   autoSwitchFont: 1
@@ -779,7 +796,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
-  localizationKey: 
+  localizationKey: ui.game_over.new_high_score
   updateOnEnable: 1
   vietnameseFont: {fileID: 11400000, guid: f61dee659a41ef546b255d69e8b07c5c, type: 2}
   autoSwitchFont: 1
@@ -939,7 +956,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 4527470027961095755, guid: a79907042fdec8f4a948b95cc855320d, type: 3}
+  m_Sprite: {fileID: 7042847911465117151, guid: 2c7576e59d5778541801293c59b03936, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1127,7 +1144,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: -40}
-  m_SizeDelta: {x: 500, y: 400}
+  m_SizeDelta: {x: 700, y: 600}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &513440330
 MonoBehaviour:
@@ -1352,9 +1369,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
-  localizationKey: 
+  localizationKey: ui.game_over.main_menu
   updateOnEnable: 1
-  vietnameseFont: {fileID: 11400000, guid: f61dee659a41ef546b255d69e8b07c5c, type: 2}
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
   autoSwitchFont: 1
 --- !u!114 &587557010
 MonoBehaviour:
@@ -1521,6 +1538,7 @@ GameObject:
   - component: {fileID: 728415178}
   - component: {fileID: 728415180}
   - component: {fileID: 728415179}
+  - component: {fileID: 728415181}
   m_Layer: 5
   m_Name: WinnerText
   m_TagString: Untagged
@@ -1646,6 +1664,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 728415177}
   m_CullTransparentMesh: 1
+--- !u!114 &728415181
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 728415177}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: ui.game_over.player1_wins
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
+  autoSwitchFont: 1
 --- !u!1 &835984231
 GameObject:
   m_ObjectHideFlags: 0
@@ -1693,9 +1727,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 835984231}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b14751a364dbf2046901c122cd08eda5, type: 3}
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: pause.main_menu
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 0}
+  autoSwitchFont: 1
 --- !u!114 &835984234
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1749,7 +1787,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 33
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -1784,7 +1822,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &835984235
@@ -2060,9 +2098,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1027889325}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b14751a364dbf2046901c122cd08eda5, type: 3}
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: game.player1
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
+  autoSwitchFont: 1
 --- !u!114 &1027889328
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2274,8 +2316,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 250, y: -180}
-  m_SizeDelta: {x: 500, y: 100}
+  m_AnchoredPosition: {x: 350, y: -255}
+  m_SizeDelta: {x: 600, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1078053288
 MonoBehaviour:
@@ -2321,9 +2363,9 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: UIManager, Assembly-CSharp
-        m_MethodName: ShowSettings
+      - m_Target: {fileID: 1170873954}
+        m_TargetAssemblyTypeName: MainMenuManager, Assembly-CSharp
+        m_MethodName: OnSettingsClicked
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -2353,7 +2395,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2530564911472380330, guid: 7e6cb3d2549fa0441959bc86e92c265d, type: 3}
+  m_Sprite: {fileID: 2712449135209075502, guid: 29e5bcbaf8875714c987774cabe1f5c4, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -2582,6 +2624,17 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1118568186}
   m_CullTransparentMesh: 1
+--- !u!114 &1170873954 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 4773069518516546918, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
+  m_PrefabInstance: {fileID: 1798238638}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5dd01d34c0e2c82438aff3bb09cbdfbf, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::MainMenuManager
 --- !u!1 &1305083044
 GameObject:
   m_ObjectHideFlags: 0
@@ -2753,8 +2806,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0, y: -223.07263}
-  m_SizeDelta: {x: 889, y: 91}
+  m_AnchoredPosition: {x: 0, y: -150.60132}
+  m_SizeDelta: {x: 889, y: 173.35}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1356369094
 MonoBehaviour:
@@ -2768,9 +2821,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
-  localizationKey: 
+  localizationKey: pause.title
   updateOnEnable: 1
-  vietnameseFont: {fileID: 0}
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
   autoSwitchFont: 1
 --- !u!114 &1356369095
 MonoBehaviour:
@@ -2794,15 +2847,15 @@ MonoBehaviour:
       m_Calls: []
   m_text: "T\u1EA1m d\u1EEBng"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 86cf4aea16d12364fa0c0902a09619ad, type: 2}
-  m_sharedMaterial: {fileID: 247692653935397308, guid: 86cf4aea16d12364fa0c0902a09619ad, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
+  m_sharedMaterial: {fileID: 516676237640682841, guid: 82f26d47dea60004486901563a148d94, type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967040
-  m_fontColor: {r: 0, g: 1, b: 1, a: 1}
+    rgba: 4278226175
+  m_fontColor: {r: 1, g: 0.5490196, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -2825,7 +2878,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 33
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -2918,9 +2971,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1373629930}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b14751a364dbf2046901c122cd08eda5, type: 3}
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: pause.resume
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 0}
+  autoSwitchFont: 1
 --- !u!114 &1373629933
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2974,7 +3031,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 33
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -3009,7 +3066,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1373629934
@@ -3176,9 +3233,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 1562832128}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: b14751a364dbf2046901c122cd08eda5, type: 3}
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: pause.settings
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 0}
+  autoSwitchFont: 1
 --- !u!114 &1562832131
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3232,7 +3293,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 1
+  m_fontStyle: 33
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -3267,7 +3328,7 @@ MonoBehaviour:
   m_margin: {x: 0, y: 0, z: 0, w: 0}
   m_isUsingLegacyAnimationComponent: 0
   m_isVolumetricText: 0
-  m_hasFontAssetChanged: 1
+  m_hasFontAssetChanged: 0
   m_baseMaterial: {fileID: 0}
   m_maskOffset: {x: 0, y: 0, z: 0, w: 0}
 --- !u!222 &1562832132
@@ -3373,6 +3434,38 @@ PrefabInstance:
       propertyPath: mainMenuPanel
       value: 
       objectReference: {fileID: 0}
+    - target: {fileID: 6606869265073536702, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
+      propertyPath: eatEpic
+      value: 
+      objectReference: {fileID: 8300000, guid: ef78bdca65ac78646b8706903ec16f12, type: 3}
+    - target: {fileID: 6606869265073536702, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
+      propertyPath: eatRare
+      value: 
+      objectReference: {fileID: 8300000, guid: ef78bdca65ac78646b8706903ec16f12, type: 3}
+    - target: {fileID: 6606869265073536702, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
+      propertyPath: snakeDie
+      value: 
+      objectReference: {fileID: 8300000, guid: 080a56e031085cb46988dc3bee051f94, type: 3}
+    - target: {fileID: 6606869265073536702, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
+      propertyPath: eatCommon
+      value: 
+      objectReference: {fileID: 8300000, guid: ef78bdca65ac78646b8706903ec16f12, type: 3}
+    - target: {fileID: 6606869265073536702, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
+      propertyPath: menuMusic
+      value: 
+      objectReference: {fileID: 8300000, guid: 7819949a7a3a7b94ea7fe2bfba58990c, type: 3}
+    - target: {fileID: 6606869265073536702, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
+      propertyPath: buttonClick
+      value: 
+      objectReference: {fileID: 8300000, guid: 14ff2c4cacd22e74db60b33a7a62000c, type: 3}
+    - target: {fileID: 6606869265073536702, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
+      propertyPath: buttonHover
+      value: 
+      objectReference: {fileID: 8300000, guid: 14ff2c4cacd22e74db60b33a7a62000c, type: 3}
+    - target: {fileID: 6606869265073536702, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
+      propertyPath: gameplayMusic
+      value: 
+      objectReference: {fileID: 8300000, guid: 21748cfb98f56924bbc04c6a5571e790, type: 3}
     - target: {fileID: 8969275392724923710, guid: 3f0aad2410aec4840a5eaab0f9696ded, type: 3}
       propertyPath: m_LocalPosition.x
       value: 732.6201
@@ -3603,6 +3696,7 @@ GameObject:
   - component: {fileID: 1942307509}
   - component: {fileID: 1942307511}
   - component: {fileID: 1942307510}
+  - component: {fileID: 1942307512}
   m_Layer: 5
   m_Name: FinalScoreText
   m_TagString: Untagged
@@ -3728,6 +3822,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1942307508}
   m_CullTransparentMesh: 1
+--- !u!114 &1942307512
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1942307508}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: ui.game_over.final_score
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
+  autoSwitchFont: 1
 --- !u!1 &1958663986
 GameObject:
   m_ObjectHideFlags: 0
@@ -3764,8 +3874,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 0, y: 1}
-  m_AnchoredPosition: {x: 250, y: -50}
-  m_SizeDelta: {x: 500, y: 100}
+  m_AnchoredPosition: {x: 350, y: -75}
+  m_SizeDelta: {x: 600, y: 150}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1958663988
 MonoBehaviour:
@@ -3811,7 +3921,7 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
+      - m_Target: {fileID: 559372461}
         m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
         m_MethodName: ResumeGame
         m_Mode: 1
@@ -3843,7 +3953,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 2530564911472380330, guid: 7e6cb3d2549fa0441959bc86e92c265d, type: 3}
+  m_Sprite: {fileID: 2712449135209075502, guid: 29e5bcbaf8875714c987774cabe1f5c4, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -4021,9 +4131,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
-  localizationKey: 
+  localizationKey: ui.game_over.restart
   updateOnEnable: 1
-  vietnameseFont: {fileID: 11400000, guid: f61dee659a41ef546b255d69e8b07c5c, type: 2}
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
   autoSwitchFont: 1
 --- !u!114 &2026557652
 MonoBehaviour:
@@ -4356,15 +4466,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.78431374}
+  m_Color: {r: 0.9607844, g: 0.9607844, b: 0.9607844, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 10907, guid: 0000000000000000f000000000000000, type: 0}
-  m_Type: 1
+  m_Sprite: {fileID: 7042847911465117151, guid: 2c7576e59d5778541801293c59b03936, type: 3}
+  m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
@@ -4392,6 +4502,7 @@ GameObject:
   - component: {fileID: 2129381155}
   - component: {fileID: 2129381157}
   - component: {fileID: 2129381156}
+  - component: {fileID: 2129381158}
   m_Layer: 5
   m_Name: ComboText
   m_TagString: Untagged
@@ -4517,6 +4628,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2129381154}
   m_CullTransparentMesh: 1
+--- !u!114 &2129381158
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2129381154}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: game.combo
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
+  autoSwitchFont: 1
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

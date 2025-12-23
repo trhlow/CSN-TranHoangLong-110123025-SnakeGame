@@ -1,12 +1,11 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 
 [RequireComponent(typeof(SnakeController))]
 public class AIController : MonoBehaviour
 {
     [Header("AI Settings")]
-    [SerializeField] private float thinkDelay = 0.2f; // Tốc độ suy nghĩ (có thể khác với move speed)
+    [SerializeField] private float thinkDelay = 0.15f;
     [SerializeField] private int visionRange = 15;
 
     [Header("Strategy")]
@@ -58,19 +57,32 @@ public class AIController : MonoBehaviour
 
     private void Think()
     {
-        Vector2Int headPos = GetHeadGridPosition();
+        // ✅ FIX: Get head position in GRID coordinates
+        Vector2Int headGridPos = snake.GetHeadPosition();
         Vector2Int currentDir = snake.GetCurrentDirection();
         List<Vector2Int> obstacles = GetAllObstacles();
 
-        // Kiểm tra nguy hiểm trước mắt
-        if (IsInDanger(headPos, currentDir, obstacles))
+        if (showDebugInfo)
         {
-            HandleDanger(headPos, obstacles);
+            Debug.Log($"[AI {snake.PlayerName}] Head at grid: {headGridPos}, Direction: {currentDir}");
+        }
+
+        // ✅ Priority 1: Immediate danger check
+        if (IsInImmediateDanger(headGridPos, currentDir, obstacles))
+        {
+            HandleDanger(headGridPos, currentDir, obstacles);
             return;
         }
 
-        // Tìm food và di chuyển
-        FindAndMoveToFood(headPos, obstacles);
+        // ✅ Priority 2: Follow path to food
+        if (currentPath != null && currentPath.Count > 0)
+        {
+            FollowPath(headGridPos, obstacles);
+            return;
+        }
+
+        // ✅ Priority 3: Find and pursue food
+        FindAndMoveToFood(headGridPos, obstacles);
     }
 
     private void FindAndMoveToFood(Vector2Int headPos, List<Vector2Int> obstacles)
@@ -92,7 +104,7 @@ public class AIController : MonoBehaviour
 
         if (bestFood != null)
         {
-            MoveTowardsFood(headPos, bestFood, obstacles);
+            PlanPathToFood(headPos, bestFood, obstacles);
         }
         else
         {
@@ -110,13 +122,13 @@ public class AIController : MonoBehaviour
             if (food == null)
                 continue;
 
-            Vector2Int foodPos = GridManager.Instance.WorldToGrid(food.transform.position);
-            int distance = pathfinding.GetManhattanDistance(headPos, foodPos);
+            Vector2Int foodGridPos = GridManager.Instance.WorldToGrid(food.transform.position);
+            int distance = pathfinding.GetManhattanDistance(headPos, foodGridPos);
 
             if (distance > visionRange)
                 continue;
 
-            float score = EvaluateFood(headPos, foodPos, food, obstacles);
+            float score = EvaluateFood(headPos, foodGridPos, food, obstacles);
 
             if (score > bestScore)
             {
@@ -132,21 +144,27 @@ public class AIController : MonoBehaviour
     {
         float score = 0;
 
+        // Distance penalty
         int distance = pathfinding.GetManhattanDistance(headPos, foodPos);
-        score -= distance;
+        score -= distance * 2f;
 
+        // Food value bonus
         Food foodComponent = food.GetComponent<Food>();
         if (foodComponent != null)
         {
-            score += foodComponent.Points * 2f;
+            score += foodComponent.Points * 3f;
         }
 
+        // Strategy-specific evaluation
         switch (strategy)
         {
             case AIStrategy.Aggressive:
+                // Prefer closer food, ignore safety
+                score += 20f;
                 break;
 
             case AIStrategy.Defensive:
+                // Only pursue if path is safe
                 List<Vector2Int> path = pathfinding.FindPath(headPos, foodPos, obstacles);
                 if (path == null || !IsPathSafe(path, obstacles))
                 {
@@ -154,21 +172,22 @@ public class AIController : MonoBehaviour
                 }
                 else
                 {
-                    score += 50f;
+                    score += 100f;
                 }
                 break;
 
             case AIStrategy.Balanced:
+                // Balance between safety and opportunity
                 path = pathfinding.FindPath(headPos, foodPos, obstacles);
                 if (path != null)
                 {
                     if (IsPathSafe(path, obstacles))
                     {
-                        score += 30f;
+                        score += 50f;
                     }
                     else
                     {
-                        score -= 20f;
+                        score -= 30f;
                     }
                 }
                 break;
@@ -177,40 +196,63 @@ public class AIController : MonoBehaviour
         return score;
     }
 
-    private void MoveTowardsFood(Vector2Int headPos, GameObject food, List<Vector2Int> obstacles)
+    private void PlanPathToFood(Vector2Int headPos, GameObject food, List<Vector2Int> obstacles)
     {
-        Vector2Int foodPos = GridManager.Instance.WorldToGrid(food.transform.position);
+        Vector2Int foodGridPos = GridManager.Instance.WorldToGrid(food.transform.position);
 
+        // ✅ Only recalculate if needed
         if (NeedRecalculatePath(food))
         {
-            currentPath = pathfinding.FindPath(headPos, foodPos, obstacles);
+            currentPath = pathfinding.FindPath(headPos, foodGridPos, obstacles);
             targetFood = food;
 
-            if (showDebugInfo && currentPath == null)
+            if (showDebugInfo)
             {
-                Debug.Log("[AI] Không tìm thấy đường đến food");
+                if (currentPath != null)
+                    Debug.Log($"[AI {snake.PlayerName}] 🎯 Path found to food: {currentPath.Count} steps");
+                else
+                    Debug.LogWarning($"[AI {snake.PlayerName}] ❌ No path to food at {foodGridPos}");
             }
         }
 
-        if (currentPath != null && currentPath.Count > 0)
-        {
-            Vector2Int nextStep = currentPath[0];
+        FollowPath(headPos, obstacles);
+    }
 
-            if (!obstacles.Contains(nextStep) && GridManager.Instance.IsValidPosition(nextStep))
-            {
-                Vector2Int direction = nextStep - headPos;
-                SetDirection(direction);
-                currentPath.RemoveAt(0);
-            }
-            else
-            {
-                currentPath = null;
-                MoveSafely(headPos, obstacles);
-            }
-        }
-        else
+    private void FollowPath(Vector2Int headPos, List<Vector2Int> obstacles)
+    {
+        if (currentPath == null || currentPath.Count == 0)
         {
             MoveSafely(headPos, obstacles);
+            return;
+        }
+
+        Vector2Int nextStep = currentPath[0];
+
+        // ✅ Validate next step
+        if (!GridManager.Instance.IsValidPosition(nextStep) || obstacles.Contains(nextStep))
+        {
+            if (showDebugInfo)
+                Debug.LogWarning($"[AI {snake.PlayerName}] ⚠️ Path blocked at {nextStep}, recalculating...");
+
+            currentPath = null;
+            targetFood = null;
+            MoveSafely(headPos, obstacles);
+            return;
+        }
+
+        // ✅ Calculate direction IN GRID SPACE
+        Vector2Int direction = nextStep - headPos;
+
+        if (showDebugInfo)
+            Debug.Log($"[AI {snake.PlayerName}] Following path: {headPos} → {nextStep}, direction: {direction}");
+
+        SetDirection(direction);
+        currentPath.RemoveAt(0);
+
+        // ✅ Clear path if reached food
+        if (currentPath.Count == 0)
+        {
+            targetFood = null;
         }
     }
 
@@ -220,36 +262,72 @@ public class AIController : MonoBehaviour
 
         if (safeDir != Vector2Int.zero)
         {
+            if (showDebugInfo)
+                Debug.Log($"[AI {snake.PlayerName}] 🛡️ Safe move: {safeDir}");
+
             SetDirection(safeDir);
+        }
+        else
+        {
+            if (showDebugInfo)
+                Debug.LogError($"[AI {snake.PlayerName}] 💀 No safe direction found!");
         }
     }
 
-    private void HandleDanger(Vector2Int headPos, List<Vector2Int> obstacles)
+    private void HandleDanger(Vector2Int headPos, Vector2Int currentDir, List<Vector2Int> obstacles)
     {
         if (showDebugInfo)
-        {
-            Debug.LogWarning("[AI] Nguy hiểm! Tìm hướng thoát...");
-        }
+            Debug.LogWarning($"[AI {snake.PlayerName}] 🚨 DANGER! Emergency evasion!");
 
         currentPath = null;
         targetFood = null;
 
-        Vector2Int safeDir = pathfinding.FindSafeDirection(headPos, obstacles);
+        // ✅ Try to find escape direction
+        Vector2Int[] emergencyDirs = {
+            new Vector2Int(-currentDir.y, currentDir.x),  // Turn left
+            new Vector2Int(currentDir.y, -currentDir.x),  // Turn right
+            -currentDir  // Turn back (last resort)
+        };
 
-        if (safeDir != Vector2Int.zero)
+        foreach (Vector2Int dir in emergencyDirs)
         {
-            SetDirection(safeDir);
+            Vector2Int testPos = headPos + dir;
+
+            if (GridManager.Instance.IsValidPosition(testPos) && !obstacles.Contains(testPos))
+            {
+                // ✅ Check if this direction has space
+                int spaceAhead = CountSpaceAhead(testPos, dir, obstacles);
+
+                if (spaceAhead > 0)
+                {
+                    if (showDebugInfo)
+                        Debug.Log($"[AI {snake.PlayerName}] ✅ Emergency escape: {dir} ({spaceAhead} spaces)");
+
+                    SetDirection(dir);
+                    return;
+                }
+            }
+        }
+
+        // ✅ Last resort: any valid direction
+        Vector2Int lastResort = pathfinding.FindSafeDirection(headPos, obstacles);
+        if (lastResort != Vector2Int.zero)
+        {
+            SetDirection(lastResort);
         }
     }
 
-    private bool IsInDanger(Vector2Int pos, Vector2Int direction, List<Vector2Int> obstacles)
+    private bool IsInImmediateDanger(Vector2Int pos, Vector2Int direction, List<Vector2Int> obstacles)
     {
         Vector2Int nextPos = pos + direction;
 
-        if (!GridManager.Instance.IsValidPosition(nextPos) || obstacles.Contains(nextPos))
-        {
+        // ✅ Check wall collision
+        if (!GridManager.Instance.IsValidPosition(nextPos))
             return true;
-        }
+
+        // ✅ Check obstacle collision
+        if (obstacles.Contains(nextPos))
+            return true;
 
         return false;
     }
@@ -259,12 +337,14 @@ public class AIController : MonoBehaviour
         if (path == null || path.Count == 0)
             return false;
 
+        // ✅ Check first 3 steps for dead ends
         int checkLength = Mathf.Min(path.Count, 3);
 
         for (int i = 0; i < checkLength; i++)
         {
             Vector2Int pos = path[i];
 
+            // Count free neighbors
             int freeNeighbors = 0;
             Vector2Int[] neighbors = {
                 pos + Vector2Int.up,
@@ -281,6 +361,7 @@ public class AIController : MonoBehaviour
                 }
             }
 
+            // ✅ Need at least 2 exits to avoid dead end
             if (freeNeighbors < 2)
             {
                 return false;
@@ -288,6 +369,25 @@ public class AIController : MonoBehaviour
         }
 
         return true;
+    }
+
+    private int CountSpaceAhead(Vector2Int start, Vector2Int direction, List<Vector2Int> obstacles)
+    {
+        int count = 0;
+        Vector2Int current = start;
+        int maxCheck = 5;
+
+        for (int i = 0; i < maxCheck; i++)
+        {
+            current += direction;
+
+            if (!GridManager.Instance.IsValidPosition(current) || obstacles.Contains(current))
+                break;
+
+            count++;
+        }
+
+        return count;
     }
 
     private bool NeedRecalculatePath(GameObject food)
@@ -298,6 +398,16 @@ public class AIController : MonoBehaviour
         if (targetFood != food)
             return true;
 
+        // ✅ Recalculate if food moved (edge case)
+        if (targetFood != null)
+        {
+            Vector2Int foodGridPos = GridManager.Instance.WorldToGrid(food.transform.position);
+            Vector2Int pathEndPos = currentPath.Count > 0 ? currentPath[currentPath.Count - 1] : Vector2Int.zero;
+
+            if (foodGridPos != pathEndPos)
+                return true;
+        }
+
         return false;
     }
 
@@ -305,43 +415,47 @@ public class AIController : MonoBehaviour
     {
         Vector2Int currentDir = snake.GetCurrentDirection();
 
+        // ✅ Prevent 180° turn
         if (direction == -currentDir)
+        {
+            if (showDebugInfo)
+                Debug.LogWarning($"[AI {snake.PlayerName}] ⚠️ Attempted illegal 180° turn");
             return;
+        }
 
-        snake.SetDirection(direction);
-    }
-
-    private Vector2Int GetHeadGridPosition()
-    {
-        return GridManager.Instance.WorldToGrid(snake.transform.position);
+        if (direction != Vector2Int.zero)
+        {
+            snake.SetDirection(direction);
+        }
     }
 
     private List<Vector2Int> GetAllObstacles()
     {
         List<Vector2Int> obstacles = new List<Vector2Int>();
 
-        if (snake != null && snake.SegmentPositions != null)
+        // ✅ Add own body (skip head)
+        if (snake != null && !snake.IsDead)
         {
-            var segments = snake.SegmentPositions;
+            List<Vector2Int> segments = snake.SegmentPositions;
+
             for (int i = 1; i < segments.Count; i++)
             {
                 obstacles.Add(segments[i]);
             }
         }
 
+        // ✅ Add other snakes
         if (GameManager.Instance != null)
         {
             List<SnakeController> allSnakes = GameManager.Instance.GetAllSnakes();
+
             foreach (SnakeController other in allSnakes)
             {
                 if (other == snake || other.IsDead)
                     continue;
 
-                var otherSegments = other.SegmentPositions;
-                if (otherSegments != null)
-                {
-                    obstacles.AddRange(otherSegments);
-                }
+                List<Vector2Int> otherSegments = other.SegmentPositions;
+                obstacles.AddRange(otherSegments);
             }
         }
 
@@ -353,9 +467,10 @@ public class AIController : MonoBehaviour
         if (!showDebugPath || currentPath == null || currentPath.Count == 0)
             return;
 
-        if (GridManager.Instance == null)
+        if (GridManager.Instance == null || snake == null)
             return;
 
+        // Draw path
         Gizmos.color = Color.cyan;
         for (int i = 0; i < currentPath.Count - 1; i++)
         {
@@ -364,10 +479,17 @@ public class AIController : MonoBehaviour
             Gizmos.DrawLine(from, to);
         }
 
+        // Draw current head position
+        Gizmos.color = Color.green;
+        Vector2Int headPos = snake.GetHeadPosition();
+        Vector3 headWorld = GridManager.Instance.GridToWorld(headPos);
+        Gizmos.DrawWireSphere(headWorld, GridManager.Instance.CellSize * 0.3f);
+
+        // Draw target food
         if (targetFood != null)
         {
             Gizmos.color = Color.yellow;
-            Gizmos.DrawWireSphere(targetFood.transform.position, 0.3f);
+            Gizmos.DrawWireSphere(targetFood.transform.position, GridManager.Instance.CellSize * 0.5f);
         }
     }
 }

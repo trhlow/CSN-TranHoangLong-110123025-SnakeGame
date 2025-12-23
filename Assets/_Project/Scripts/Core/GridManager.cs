@@ -160,30 +160,7 @@ public class GridManager : Singleton<GridManager>
     /// <summary>
     /// Get random empty cell within grid
     /// </summary>
-    public Vector2Int GetRandomEmptyCell()
-    {
-        int maxAttempts = 100;
-        int attempts = 0;
-
-        while (attempts < maxAttempts)
-        {
-            int x = Random.Range(0, gridWidth);
-            int y = Random.Range(0, gridHeight);
-            Vector2Int pos = new Vector2Int(x, y);
-
-            if (!IsOccupied(pos))
-            {
-                return pos;
-            }
-
-            attempts++;
-        }
-
-        // Fallback to center if no empty cell found
-        Debug.LogWarning("[GridManager] Could not find empty cell, returning center");
-        return new Vector2Int(gridWidth / 2, gridHeight / 2);
-    }
-
+ 
     /// <summary>
     /// Get all valid neighbors (up, down, left, right)
     /// </summary>
@@ -216,6 +193,27 @@ public class GridManager : Singleton<GridManager>
     public int GetManhattanDistance(Vector2Int from, Vector2Int to)
     {
         return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
+    }
+
+    public Vector2Int GetRandomEmptyCell()
+    {
+        List<Vector2Int> emptyCells = new List<Vector2Int>();
+
+        for (int x = 0; x < GridWidth; x++)
+        {
+            for (int y = 0; y < GridHeight; y++)
+            {
+                Vector2Int pos = new Vector2Int(x, y);
+                if (!IsOccupied(pos))
+                {
+                    emptyCells.Add(pos);
+                }
+            }
+        }
+
+        return emptyCells.Count > 0 ?
+               emptyCells[Random.Range(0, emptyCells.Count)] :
+               new Vector2Int(-1, -1);
     }
     #endregion
 

@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// SnakeController - Full version với SetMoveSpeed()
+/// SnakeController - FIXED: Grid-aligned movement
 /// </summary>
 [RequireComponent(typeof(Rigidbody2D))]
 public class SnakeController : MonoBehaviour
@@ -21,7 +21,7 @@ public class SnakeController : MonoBehaviour
     [SerializeField] private Transform segmentsContainer;
 
     [Header("Movement Settings")]
-    [SerializeField] private float moveInterval = 1f;
+    [SerializeField] private float moveInterval = 0.2f;
     [SerializeField] private int initialLength = 5;
     [SerializeField] private float speedIncreasePerFood = 0.002f;
     [SerializeField] private float minMoveInterval = 0.08f;
@@ -41,13 +41,12 @@ public class SnakeController : MonoBehaviour
     private bool isAlive = true;
     private int moveCount = 0;
 
-    // Movement
-    private List<Transform> segments = new List<Transform>();
+    // Movement - ✅ LƯU Ý: Dùng GRID COORDINATES
+    private List<Vector2Int> segmentGridPositions = new List<Vector2Int>();
+    private List<Transform> segmentTransforms = new List<Transform>();
     private Vector2Int direction = Vector2Int.right;
+    private Vector2Int nextDirection = Vector2Int.right; // Buffer input
     private float moveTimer = 0f;
-
-    // World bounds
-    private float worldMinX, worldMaxX, worldMinY, worldMaxY;
 
     // Events
     public event System.Action<SnakeController> OnSnakeDied;
@@ -71,38 +70,9 @@ public class SnakeController : MonoBehaviour
         Score = 0;
         isAlive = true;
         direction = Vector2Int.right;
+        nextDirection = Vector2Int.right;
 
-        CalculateWorldBounds();
         SpawnInitialSnake();
-    }
-
-    private void CalculateWorldBounds()
-    {
-        if (GridManager.Instance != null)
-        {
-            int gridWidth = GridManager.Instance.GridWidth;
-            int gridHeight = GridManager.Instance.GridHeight;
-            float cellSize = GridManager.Instance.CellSize;
-            Vector3 gridOrigin = GridManager.Instance.GridOrigin;
-
-            worldMinX = gridOrigin.x;
-            worldMaxX = gridOrigin.x + gridWidth * cellSize;
-            worldMinY = gridOrigin.y;
-            worldMaxY = gridOrigin.y + gridHeight * cellSize;
-
-            if (enableDebug)
-            {
-                Debug.Log($"[{PlayerName}] World Bounds: X({worldMinX:F2} to {worldMaxX:F2}), Y({worldMinY:F2} to {worldMaxY:F2})");
-            }
-        }
-        else
-        {
-            worldMinX = -10f;
-            worldMaxX = 10f;
-            worldMinY = -7.5f;
-            worldMaxY = 7.5f;
-            Debug.LogWarning($"[{PlayerName}] GridManager not found! Using default bounds.");
-        }
     }
 
     private void SpawnInitialSnake()
@@ -113,111 +83,113 @@ public class SnakeController : MonoBehaviour
             return;
         }
 
+        if (GridManager.Instance == null)
+        {
+            Debug.LogError($"[{PlayerName}] ❌ GridManager not found!");
+            return;
+        }
+
         ClearSegments();
 
-        Vector3 spawnPos = transform.position;
+        // ✅ FIX: Snap spawn position to grid
+        Vector2Int spawnGridPos = GridManager.Instance.WorldToGrid(transform.position);
 
         if (enableDebug)
-        {
-            Debug.Log($"[{PlayerName}] Spawning at world position: {spawnPos}");
-        }
+            Debug.Log($"[{PlayerName}] Spawning at grid: {spawnGridPos}");
 
-        SpawnHead(spawnPos);
+        // Spawn head
+        segmentGridPositions.Add(spawnGridPos);
+        SpawnSegmentVisual(spawnGridPos, SegmentType.Head);
 
-        Vector3 currentPos = spawnPos;
+        // Spawn body
+        Vector2Int currentGridPos = spawnGridPos;
         for (int i = 1; i < initialLength - 1; i++)
         {
-            currentPos -= new Vector3(1, 0, 0);
-            SpawnBodySegment(currentPos, i);
+            currentGridPos += Vector2Int.left; // Move left in grid space
+            segmentGridPositions.Add(currentGridPos);
+            SpawnSegmentVisual(currentGridPos, SegmentType.Body);
         }
 
-        currentPos -= new Vector3(1, 0, 0);
-        SpawnTail(currentPos);
+        // Spawn tail
+        currentGridPos += Vector2Int.left;
+        segmentGridPositions.Add(currentGridPos);
+        SpawnSegmentVisual(currentGridPos, SegmentType.Tail);
 
         direction = Vector2Int.right;
+        nextDirection = Vector2Int.right;
         moveTimer = 0f;
         moveCount = 0;
 
         if (enableDebug)
-            Debug.Log($"[{PlayerName}] ✅ Spawned with {segments.Count} segments");
+            Debug.Log($"[{PlayerName}] ✅ Spawned {segmentGridPositions.Count} segments");
     }
 
-    private void SpawnHead(Vector3 position)
+    private enum SegmentType { Head, Body, Tail }
+
+    private void SpawnSegmentVisual(Vector2Int gridPos, SegmentType type)
     {
-        GameObject headObj = Instantiate(headPrefab, position, Quaternion.identity, segmentsContainer);
-        headObj.name = $"{PlayerName}_Head";
-        headObj.tag = "SnakeHead";
+        GameObject prefab = type switch
+        {
+            SegmentType.Head => headPrefab,
+            SegmentType.Tail => tailPrefab,
+            _ => bodyPrefab
+        };
 
-        ConfigureSegmentCollider(headObj);
-        ConfigureSegmentRigidbody(headObj);
+        // ✅ Convert grid to world position
+        Vector3 worldPos = GridManager.Instance.GridToWorld(gridPos);
 
-        SpriteRenderer sr = headObj.GetComponent<SpriteRenderer>();
-        if (sr != null)
-            sr.color = SnakeColor;
+        GameObject segmentObj = Instantiate(prefab, worldPos, Quaternion.identity, segmentsContainer);
+        segmentObj.name = $"{PlayerName}_{type}{segmentTransforms.Count}";
 
-        segments.Add(headObj.transform);
-    }
+        // Set tag
+        segmentObj.tag = type == SegmentType.Head ? "SnakeHead" : "SnakeBody";
 
-    private void SpawnBodySegment(Vector3 position, int index)
-    {
-        GameObject bodyObj = Instantiate(bodyPrefab, position, Quaternion.identity, segmentsContainer);
-        bodyObj.name = $"{PlayerName}_Body{index}";
-        bodyObj.tag = "SnakeBody";
-
-        ConfigureSegmentCollider(bodyObj);
-
-        SpriteRenderer sr = bodyObj.GetComponent<SpriteRenderer>();
-        if (sr != null)
-            sr.color = SnakeColor * 0.9f;
-
-        segments.Add(bodyObj.transform);
-    }
-
-    private void SpawnTail(Vector3 position)
-    {
-        GameObject tailObj = Instantiate(tailPrefab, position, Quaternion.identity, segmentsContainer);
-        tailObj.name = $"{PlayerName}_Tail";
-        tailObj.tag = "SnakeBody";
-
-        ConfigureSegmentCollider(tailObj);
-
-        SpriteRenderer sr = tailObj.GetComponent<SpriteRenderer>();
-        if (sr != null)
-            sr.color = SnakeColor * 0.8f;
-
-        segments.Add(tailObj.transform);
-    }
-
-    private void ConfigureSegmentCollider(GameObject segment)
-    {
-        BoxCollider2D collider = segment.GetComponent<BoxCollider2D>();
+        // Setup collider
+        CircleCollider2D collider = segmentObj.GetComponent<CircleCollider2D>();
         if (collider == null)
-        {
-            collider = segment.AddComponent<BoxCollider2D>();
-        }
-        collider.size = Vector2.one * 0.9f;
-        collider.isTrigger = true;
-    }
+            collider = segmentObj.AddComponent<CircleCollider2D>();
 
-    private void ConfigureSegmentRigidbody(GameObject segment)
-    {
-        Rigidbody2D rb = segment.GetComponent<Rigidbody2D>();
-        if (rb == null)
+        collider.isTrigger = true;
+        collider.radius = GridManager.Instance.CellSize * 0.4f; // 80% of cell
+
+        // Setup collision handler
+        SegmentCollisionHandler handler = segmentObj.AddComponent<SegmentCollisionHandler>();
+        handler.snake = this;
+
+        // Set color
+        SpriteRenderer sr = segmentObj.GetComponent<SpriteRenderer>();
+        if (sr != null)
         {
-            rb = segment.AddComponent<Rigidbody2D>();
+            sr.color = type switch
+            {
+                SegmentType.Head => SnakeColor,
+                SegmentType.Tail => SnakeColor * 0.8f,
+                _ => SnakeColor * 0.9f
+            };
         }
-        rb.isKinematic = true;
-        rb.gravityScale = 0f;
+
+        segmentTransforms.Add(segmentObj.transform);
+
+        // ✅ Occupy grid cell
+        GridManager.Instance.OccupyCell(gridPos, segmentObj);
     }
 
     private void ClearSegments()
     {
-        foreach (Transform seg in segments)
+        // Free grid cells
+        foreach (Vector2Int gridPos in segmentGridPositions)
+        {
+            GridManager.Instance.FreeCell(gridPos);
+        }
+        segmentGridPositions.Clear();
+
+        // Destroy visual segments
+        foreach (Transform seg in segmentTransforms)
         {
             if (seg != null)
                 Destroy(seg.gameObject);
         }
-        segments.Clear();
+        segmentTransforms.Clear();
     }
     #endregion
 
@@ -242,67 +214,85 @@ public class SnakeController : MonoBehaviour
 
     private void HandlePlayerInput()
     {
+        // ✅ Buffer input để tránh miss input giữa các frame
         if (Input.GetKeyDown(KeyUp) && direction != Vector2Int.down)
-            direction = Vector2Int.up;
+            nextDirection = Vector2Int.up;
         else if (Input.GetKeyDown(KeyDown) && direction != Vector2Int.up)
-            direction = Vector2Int.down;
+            nextDirection = Vector2Int.down;
         else if (Input.GetKeyDown(KeyLeft) && direction != Vector2Int.right)
-            direction = Vector2Int.left;
+            nextDirection = Vector2Int.left;
         else if (Input.GetKeyDown(KeyRight) && direction != Vector2Int.left)
-            direction = Vector2Int.right;
+            nextDirection = Vector2Int.right;
     }
     #endregion
 
     #region Movement
     public void Move()
     {
-        if (!isAlive || segments.Count == 0)
+        if (!isAlive || segmentGridPositions.Count == 0)
             return;
 
         moveCount++;
 
-        for (int i = segments.Count - 1; i > 0; i--)
-        {
-            segments[i].position = segments[i - 1].position;
-        }
+        // ✅ Apply buffered direction
+        direction = nextDirection;
 
-        Vector3 moveVector = new Vector3(direction.x, direction.y, 0f);
-        segments[0].position += moveVector;
+        // ✅ Calculate new head position IN GRID SPACE
+        Vector2Int oldHeadPos = segmentGridPositions[0];
+        Vector2Int newHeadPos = oldHeadPos + direction;
 
-        Vector3 headWorldPos = segments[0].position;
-
-        if (headWorldPos.x < worldMinX || headWorldPos.x > worldMaxX ||
-            headWorldPos.y < worldMinY || headWorldPos.y > worldMaxY)
+        // ✅ Check collision BEFORE moving
+        if (!GridManager.Instance.IsValidPosition(newHeadPos))
         {
             if (enableDebug)
-            {
-                Debug.LogError($"[{PlayerName}] 💥 Hit wall at world position {headWorldPos}");
-                Debug.LogError($"[{PlayerName}] Bounds: X({worldMinX} to {worldMaxX}), Y({worldMinY} to {worldMaxY})");
-            }
+                Debug.LogError($"[{PlayerName}] 💥 Hit wall at grid {newHeadPos}");
             Die();
             return;
         }
 
+        // ✅ Check self-collision (skip first 4 segments for grace period)
         if (moveCount > initialLength)
         {
-            for (int i = 4; i < segments.Count; i++)
+            for (int i = 1; i < segmentGridPositions.Count; i++)
             {
-                if (Vector3.Distance(segments[i].position, headWorldPos) < 0.1f)
+                if (segmentGridPositions[i] == newHeadPos)
                 {
                     if (enableDebug)
-                        Debug.LogError($"[{PlayerName}] 💥 Self-collision at {headWorldPos}");
+                        Debug.LogError($"[{PlayerName}] 💥 Self-collision at grid {newHeadPos}");
                     Die();
                     return;
                 }
             }
         }
+
+        // ✅ Move segments in GRID SPACE
+        Vector2Int tailGridPos = segmentGridPositions[segmentGridPositions.Count - 1];
+
+        for (int i = segmentGridPositions.Count - 1; i > 0; i--)
+        {
+            segmentGridPositions[i] = segmentGridPositions[i - 1];
+        }
+
+        segmentGridPositions[0] = newHeadPos;
+
+        // ✅ Update visual positions
+        for (int i = 0; i < segmentTransforms.Count; i++)
+        {
+            Vector3 worldPos = GridManager.Instance.GridToWorld(segmentGridPositions[i]);
+            segmentTransforms[i].position = worldPos;
+        }
+
+        // ✅ Update grid occupancy
+        GridManager.Instance.FreeCell(tailGridPos);
+        GridManager.Instance.OccupyCell(newHeadPos, segmentTransforms[0].gameObject);
     }
 
     public void SetDirection(Vector2Int newDirection)
     {
-        if (newDirection + direction != Vector2Int.zero)
+        // ✅ Prevent 180° turn
+        if (newDirection + direction != Vector2Int.zero && newDirection != Vector2Int.zero)
         {
-            direction = newDirection;
+            nextDirection = newDirection;
         }
     }
 
@@ -310,21 +300,20 @@ public class SnakeController : MonoBehaviour
     #endregion
 
     #region Collision Detection
-    private void OnTriggerEnter2D(Collider2D collision)
+    // ✅ Được gọi từ SegmentCollisionHandler
+    public void OnSegmentTriggerEnter(Collider2D collision, GameObject segment)
     {
         if (!isAlive)
             return;
 
-        if (segments.Count > 0 && collision.gameObject != segments[0].gameObject)
+        // ✅ Only head can eat food
+        if (segment == segmentTransforms[0].gameObject && collision.CompareTag("Food"))
         {
-            if (collision.CompareTag("Food"))
-            {
-                HandleFoodCollision(collision);
-            }
-            else if (collision.CompareTag("SnakeBody") || collision.CompareTag("SnakeHead"))
-            {
-                HandleSnakeCollision(collision);
-            }
+            HandleFoodCollision(collision);
+        }
+        else if (collision.CompareTag("SnakeBody") || collision.CompareTag("SnakeHead"))
+        {
+            HandleSnakeCollision(collision);
         }
     }
 
@@ -339,44 +328,41 @@ public class SnakeController : MonoBehaviour
 
         Score += food.Points;
         Grow();
+
+        // ✅ Speed up
         moveInterval = Mathf.Max(minMoveInterval, moveInterval - speedIncreasePerFood);
 
         OnSnakeEatFood?.Invoke(food);
 
         if (GameManager.Instance != null)
-        {
             GameManager.Instance.RegisterFoodEaten(PlayerID);
-        }
 
         if (UIManager.Instance != null)
-        {
             UIManager.Instance.UpdateScore(PlayerID, Score);
-        }
 
         if (FoodSpawner.Instance != null)
-        {
             FoodSpawner.Instance.RemoveFood(collision.gameObject);
-        }
 
         food.OnEaten(collision.transform.position);
     }
 
     private void HandleSnakeCollision(Collider2D collision)
     {
-        bool isSelfCollision = false;
-        foreach (Transform seg in segments)
+        // ✅ Check if it's NOT our own segment
+        bool isOwnSegment = false;
+        foreach (Transform seg in segmentTransforms)
         {
-            if (seg.gameObject == collision.gameObject)
+            if (seg != null && seg.gameObject == collision.gameObject)
             {
-                isSelfCollision = true;
+                isOwnSegment = true;
                 break;
             }
         }
 
-        if (!isSelfCollision)
+        if (!isOwnSegment)
         {
             if (enableDebug)
-                Debug.LogError($"[{PlayerName}] 💥 Collision with another snake!");
+                Debug.LogError($"[{PlayerName}] 💥 Hit another snake!");
             Die();
         }
     }
@@ -385,30 +371,42 @@ public class SnakeController : MonoBehaviour
     #region Growth
     public void Grow()
     {
-        if (segments.Count < 2)
+        if (segmentGridPositions.Count < 2)
             return;
 
-        Transform lastBody = segments[segments.Count - 2];
-        Vector3 newPos = lastBody.position;
+        // ✅ Insert new segment before tail
+        int tailIndex = segmentGridPositions.Count - 1;
+        Vector2Int newSegmentGridPos = segmentGridPositions[tailIndex];
 
-        GameObject newBodyObj = Instantiate(bodyPrefab, newPos, Quaternion.identity, segmentsContainer);
-        newBodyObj.name = $"{PlayerName}_Body_Extra{segments.Count}";
-        newBodyObj.tag = "SnakeBody";
+        segmentGridPositions.Insert(tailIndex, newSegmentGridPos);
 
-        ConfigureSegmentCollider(newBodyObj);
+        // Spawn visual
+        Vector3 worldPos = GridManager.Instance.GridToWorld(newSegmentGridPos);
+        GameObject bodyObj = Instantiate(bodyPrefab, worldPos, Quaternion.identity, segmentsContainer);
+        bodyObj.name = $"{PlayerName}_Body_Extra{segmentTransforms.Count}";
+        bodyObj.tag = "SnakeBody";
 
-        SpriteRenderer sr = newBodyObj.GetComponent<SpriteRenderer>();
+        CircleCollider2D collider = bodyObj.GetComponent<CircleCollider2D>();
+        if (collider == null)
+            collider = bodyObj.AddComponent<CircleCollider2D>();
+        collider.isTrigger = true;
+        collider.radius = GridManager.Instance.CellSize * 0.4f;
+
+        SegmentCollisionHandler handler = bodyObj.AddComponent<SegmentCollisionHandler>();
+        handler.snake = this;
+
+        SpriteRenderer sr = bodyObj.GetComponent<SpriteRenderer>();
         if (sr != null)
             sr.color = SnakeColor * 0.9f;
 
-        segments.Insert(segments.Count - 1, newBodyObj.transform);
+        segmentTransforms.Insert(tailIndex, bodyObj.transform);
 
         if (enableDebug)
-            Debug.Log($"[{PlayerName}] 📈 Grew to {segments.Count} segments");
+            Debug.Log($"[{PlayerName}] 📈 Grew to {segmentGridPositions.Count} segments");
     }
     #endregion
 
-    #region Death
+    #region Death & Utility
     public void Die()
     {
         if (!isAlive)
@@ -420,47 +418,22 @@ public class SnakeController : MonoBehaviour
             Debug.Log($"<color=red>💀 [{PlayerName}] Died! Final Score: {Score}</color>");
 
         if (AudioManager.Instance != null)
-        {
             AudioManager.Instance.PlaySFX("SnakeDie");
-        }
 
         if (CameraController.Instance != null)
-        {
             CameraController.Instance.Shake(0.5f, 0.3f);
-        }
 
         OnSnakeDied?.Invoke(this);
     }
-    #endregion
 
-    #region Utility
     public Vector2Int GetHeadPosition()
     {
-        if (segments.Count == 0 || GridManager.Instance == null)
-            return Vector2Int.zero;
-
-        return GridManager.Instance.WorldToGrid(segments[0].position);
+        return segmentGridPositions.Count > 0 ? segmentGridPositions[0] : Vector2Int.zero;
     }
 
     public List<Vector2Int> SegmentPositions
     {
-        get
-        {
-            List<Vector2Int> positions = new List<Vector2Int>();
-
-            if (GridManager.Instance == null)
-                return positions;
-
-            foreach (Transform seg in segments)
-            {
-                if (seg != null)
-                {
-                    Vector2Int gridPos = GridManager.Instance.WorldToGrid(seg.position);
-                    positions.Add(gridPos);
-                }
-            }
-            return positions;
-        }
+        get { return new List<Vector2Int>(segmentGridPositions); }
     }
 
     public void SetAI(bool value)
@@ -468,39 +441,23 @@ public class SnakeController : MonoBehaviour
         IsAIControlled = value;
     }
 
+    public void SetMoveSpeed(float newMoveInterval)
+    {
+        moveInterval = Mathf.Max(minMoveInterval, newMoveInterval);
+    }
+
     public void SetSnakeColor(Color newColor)
     {
         SnakeColor = newColor;
-
-        if (segments != null && segments.Count > 0)
+        for (int i = 0; i < segmentTransforms.Count; i++)
         {
-            for (int i = 0; i < segments.Count; i++)
+            SpriteRenderer sr = segmentTransforms[i].GetComponent<SpriteRenderer>();
+            if (sr != null)
             {
-                SpriteRenderer sr = segments[i].GetComponent<SpriteRenderer>();
-                if (sr != null)
-                {
-                    if (i == 0)
-                        sr.color = newColor;
-                    else if (i == segments.Count - 1)
-                        sr.color = newColor * 0.8f;
-                    else
-                        sr.color = newColor * 0.9f;
-                }
+                sr.color = i == 0 ? newColor :
+                           i == segmentTransforms.Count - 1 ? newColor * 0.8f :
+                           newColor * 0.9f;
             }
-        }
-    }
-
-    // ✅✅✅ METHOD MỚI: SET SPEED RIÊNG CHO AI ✅✅✅
-    /// <summary>
-    /// Set tốc độ di chuyển của snake
-    /// </summary>
-    public void SetMoveSpeed(float newMoveInterval)
-    {
-        moveInterval = Mathf.Max(0.08f, newMoveInterval);
-
-        if (enableDebug)
-        {
-            Debug.Log($"[{PlayerName}] Move speed set to {moveInterval}s per move");
         }
     }
     #endregion
@@ -508,36 +465,36 @@ public class SnakeController : MonoBehaviour
     #region Debug
     private void OnDrawGizmos()
     {
-        if (!enableDebug || segments.Count == 0)
+        if (!enableDebug || segmentGridPositions.Count == 0)
             return;
 
-        Gizmos.color = Color.yellow;
-        Vector3 headPos = segments[0].position;
-        Vector3 dirVector = new Vector3(direction.x, direction.y, 0) * 0.5f;
-        Gizmos.DrawRay(headPos, dirVector);
-
+        // Draw snake path
         Gizmos.color = SnakeColor;
-        foreach (Transform seg in segments)
+        foreach (Vector2Int gridPos in segmentGridPositions)
         {
-            if (seg != null)
-            {
-                Gizmos.DrawWireCube(seg.position, Vector3.one * 0.9f);
-            }
+            Vector3 worldPos = GridManager.Instance.GridToWorld(gridPos);
+            Gizmos.DrawWireCube(worldPos, Vector3.one * GridManager.Instance.CellSize * 0.9f);
         }
 
-        if (Application.isPlaying)
-        {
-            Gizmos.color = Color.red;
-            Vector3 bl = new Vector3(worldMinX, worldMinY, 0);
-            Vector3 br = new Vector3(worldMaxX, worldMinY, 0);
-            Vector3 tl = new Vector3(worldMinX, worldMaxY, 0);
-            Vector3 tr = new Vector3(worldMaxX, worldMaxY, 0);
-
-            Gizmos.DrawLine(bl, br);
-            Gizmos.DrawLine(br, tr);
-            Gizmos.DrawLine(tr, tl);
-            Gizmos.DrawLine(tl, bl);
-        }
+        // Draw direction
+        Gizmos.color = Color.yellow;
+        Vector3 headWorld = GridManager.Instance.GridToWorld(segmentGridPositions[0]);
+        Vector3 dirVector = new Vector3(direction.x, direction.y, 0) * GridManager.Instance.CellSize;
+        Gizmos.DrawRay(headWorld, dirVector);
     }
     #endregion
+}
+
+// ✅ NEW: Collision handler component
+public class SegmentCollisionHandler : MonoBehaviour
+{
+    [HideInInspector] public SnakeController snake;
+
+    private void OnTriggerEnter2D(Collider2D collision)
+    {
+        if (snake != null)
+        {
+            snake.OnSegmentTriggerEnter(collision, gameObject);
+        }
+    }
 }

@@ -127,10 +127,14 @@ public class GameManager : Singleton<GameManager>
         {
             case GameState.Playing:
                 Time.timeScale = 1f;
+                if (UIManager.Instance != null)
+                    UIManager.Instance.HidePauseMenu();
                 break;
 
             case GameState.Paused:
                 Time.timeScale = 0f;
+                if (UIManager.Instance != null)
+                    UIManager.Instance.ShowPauseMenu();
                 break;
 
             case GameState.GameOver:
