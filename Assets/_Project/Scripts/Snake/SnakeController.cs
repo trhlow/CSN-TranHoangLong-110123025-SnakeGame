@@ -120,6 +120,9 @@ public class SnakeController : MonoBehaviour
         moveTimer = 0f;
         moveCount = 0;
 
+        // ✅ CRITICAL FIX: Force update màu cho TẤT CẢ segments SAU khi spawn xong
+        StartCoroutine(ForceUpdateAllSegmentColors());
+
         if (enableDebug)
             Debug.Log($"[{PlayerName}] ✅ Spawned {segmentGridPositions.Count} segments");
     }
@@ -128,49 +131,52 @@ public class SnakeController : MonoBehaviour
 
     private void SpawnSegmentVisual(Vector2Int gridPos, SegmentType type)
     {
-        GameObject prefab = type switch
+        GameObject prefabForSpawn;
+        switch (type)
         {
-            SegmentType.Head => headPrefab,
-            SegmentType.Tail => tailPrefab,
-            _ => bodyPrefab
-        };
+            case SegmentType.Head: prefabForSpawn = headPrefab; break;
+            case SegmentType.Tail: prefabForSpawn = tailPrefab; break;
+            default: prefabForSpawn = bodyPrefab; break;
+        }
 
-        // ✅ Convert grid to world position
         Vector3 worldPos = GridManager.Instance.GridToWorld(gridPos);
 
-        GameObject segmentObj = Instantiate(prefab, worldPos, Quaternion.identity, segmentsContainer);
+        GameObject segmentObj = Instantiate(prefabForSpawn, worldPos, Quaternion.identity, segmentsContainer);
         segmentObj.name = $"{PlayerName}_{type}{segmentTransforms.Count}";
-
-        // Set tag
         segmentObj.tag = type == SegmentType.Head ? "SnakeHead" : "SnakeBody";
 
-        // Setup collider
+        // Collider setup
         CircleCollider2D collider = segmentObj.GetComponent<CircleCollider2D>();
         if (collider == null)
             collider = segmentObj.AddComponent<CircleCollider2D>();
-
         collider.isTrigger = true;
-        collider.radius = GridManager.Instance.CellSize * 0.4f; // 80% of cell
+        collider.radius = GridManager.Instance.CellSize * 0.4f;
 
-        // Setup collision handler
+        // Collision handler setup
         SegmentCollisionHandler handler = segmentObj.AddComponent<SegmentCollisionHandler>();
         handler.snake = this;
 
-        // Set color
+        // ✅ CRITICAL FIX: ƯU TIÊN set SpriteRenderer TRỰC TIẾP
+        Color finalColor = type == SegmentType.Head ? SnakeColor
+                        : type == SegmentType.Tail ? SnakeColor * 0.85f
+                        : SnakeColor * 0.95f;
+
         SpriteRenderer sr = segmentObj.GetComponent<SpriteRenderer>();
         if (sr != null)
         {
-            sr.color = type switch
-            {
-                SegmentType.Head => SnakeColor,
-                SegmentType.Tail => SnakeColor * 0.8f,
-                _ => SnakeColor * 0.9f
-            };
+            sr.color = finalColor;
+            Debug.Log($"[{PlayerName}] ✅ FORCED Spawn Color: {segmentObj.name} = #{ColorUtility.ToHtmlStringRGB(finalColor)}");
+        }
+
+        // Sau đó mới thử Visualizer (optional)
+        var visualizer = segmentObj.GetComponent<SnakeSegmentVisualizer>();
+        if (visualizer != null)
+        {
+            visualizer.SetSegmentType((SnakeSegmentVisualizer.SegmentType)type);
+            visualizer.SetColor(SnakeColor);
         }
 
         segmentTransforms.Add(segmentObj.transform);
-
-        // ✅ Occupy grid cell
         GridManager.Instance.OccupyCell(gridPos, segmentObj);
     }
 
@@ -190,6 +196,60 @@ public class SnakeController : MonoBehaviour
                 Destroy(seg.gameObject);
         }
         segmentTransforms.Clear();
+    }
+
+    /// <summary>
+    /// ✅ CRITICAL: Force update màu cho TẤT CẢ segments (gọi sau khi spawn)
+    /// </summary>
+    private System.Collections.IEnumerator ForceUpdateAllSegmentColors()
+    {
+        // Đợi 1 frame để prefabs khởi tạo xong
+        yield return null;
+
+        Debug.Log($"[{PlayerName}] 🎨 Force updating colors for {segmentTransforms.Count} segments...");
+
+        for (int i = 0; i < segmentTransforms.Count; i++)
+        {
+            if (segmentTransforms[i] == null) continue;
+
+            GameObject segmentObj = segmentTransforms[i].gameObject;
+            SegmentType type = i == 0 ? SegmentType.Head 
+                             : i == segmentTransforms.Count - 1 ? SegmentType.Tail 
+                             : SegmentType.Body;
+
+            ApplyColorToSegment(segmentObj, type);
+        }
+
+        Debug.Log($"[{PlayerName}] ✅ All segments colored: #{ColorUtility.ToHtmlStringRGB(SnakeColor)}");
+    }
+
+    /// <summary>
+    /// Áp dụng màu cho 1 segment
+    /// </summary>
+    private void ApplyColorToSegment(GameObject segmentObj, SegmentType type)
+    {
+        if (segmentObj == null) return;
+
+        // Tính màu theo loại segment
+        Color targetColor = type == SegmentType.Head ? SnakeColor
+                          : type == SegmentType.Tail ? SnakeColor * 0.85f
+                          : SnakeColor * 0.95f;
+
+        // ✅ CRITICAL FIX: ƯU TIÊN set SpriteRenderer TRỰC TIẾP
+        var sr = segmentObj.GetComponent<SpriteRenderer>();
+        if (sr != null)
+        {
+            sr.color = targetColor;
+            Debug.Log($"[{PlayerName}] ✅ FORCED SpriteRenderer: {segmentObj.name} = #{ColorUtility.ToHtmlStringRGB(targetColor)}");
+        }
+
+        // Sau đó mới thử Visualizer (nếu có)
+        var visualizer = segmentObj.GetComponent<SnakeSegmentVisualizer>();
+        if (visualizer != null)
+        {
+            visualizer.SetSegmentType((SnakeSegmentVisualizer.SegmentType)type);
+            visualizer.SetColor(SnakeColor);
+        }
     }
     #endregion
 
@@ -395,9 +455,22 @@ public class SnakeController : MonoBehaviour
         SegmentCollisionHandler handler = bodyObj.AddComponent<SegmentCollisionHandler>();
         handler.snake = this;
 
+        // ✅ CRITICAL FIX: FORCE set SpriteRenderer TRỰC TIẾP
+        Color bodyColor = SnakeColor * 0.95f;
         SpriteRenderer sr = bodyObj.GetComponent<SpriteRenderer>();
         if (sr != null)
-            sr.color = SnakeColor * 0.9f;
+        {
+            sr.color = bodyColor;
+            Debug.Log($"[{PlayerName}] ✅ FORCED Grow Color: {bodyObj.name} = #{ColorUtility.ToHtmlStringRGB(bodyColor)}");
+        }
+
+        // Optional: Visualizer
+        var visualizer = bodyObj.GetComponent<SnakeSegmentVisualizer>();
+        if (visualizer != null)
+        {
+            visualizer.SetSegmentType(SnakeSegmentVisualizer.SegmentType.Body);
+            visualizer.SetColor(SnakeColor);
+        }
 
         segmentTransforms.Insert(tailIndex, bodyObj.transform);
 
@@ -446,19 +519,34 @@ public class SnakeController : MonoBehaviour
         moveInterval = Mathf.Max(minMoveInterval, newMoveInterval);
     }
 
+    /// <summary>
+    /// ✅ NEW: Lấy tốc độ hiện tại (cho AI sync)
+    /// </summary>
+    public float GetMoveInterval()
+    {
+        return moveInterval;
+    }
+
     public void SetSnakeColor(Color newColor)
     {
         SnakeColor = newColor;
+        
+        Debug.Log($"[{PlayerName}] 🎨 SetSnakeColor called: #{ColorUtility.ToHtmlStringRGB(newColor)}");
+        
+        // ✅ FIX: Cập nhật màu cho TẤT CẢ segments hiện tại
         for (int i = 0; i < segmentTransforms.Count; i++)
         {
-            SpriteRenderer sr = segmentTransforms[i].GetComponent<SpriteRenderer>();
-            if (sr != null)
-            {
-                sr.color = i == 0 ? newColor :
-                           i == segmentTransforms.Count - 1 ? newColor * 0.8f :
-                           newColor * 0.9f;
-            }
+            if (segmentTransforms[i] == null) continue;
+            
+            GameObject segmentObj = segmentTransforms[i].gameObject;
+            SegmentType type = i == 0 ? SegmentType.Head
+                             : i == segmentTransforms.Count - 1 ? SegmentType.Tail
+                             : SegmentType.Body;
+            
+            ApplyColorToSegment(segmentObj, type);
         }
+        
+        Debug.Log($"[{PlayerName}] ✅ Updated {segmentTransforms.Count} segments to new color");
     }
     #endregion
 

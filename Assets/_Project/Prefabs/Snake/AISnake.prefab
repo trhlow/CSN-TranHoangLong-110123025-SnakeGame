@@ -179,6 +179,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AIController
   thinkDelay: 0.2
   visionRange: 15
-  strategy: 2
+  strategy: 1
   showDebugPath: 0
   showDebugInfo: 0

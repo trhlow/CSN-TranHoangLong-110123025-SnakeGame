@@ -7,6 +7,7 @@ public class AIController : MonoBehaviour
     [Header("AI Settings")]
     [SerializeField] private float thinkDelay = 0.15f;
     [SerializeField] private int visionRange = 15;
+    [SerializeField] private bool matchPlayerSpeed = true; // ✅ NEW: Tự động đồng bộ tốc độ với Player
 
     [Header("Strategy")]
     [SerializeField] private AIStrategy strategy = AIStrategy.Balanced;
@@ -40,6 +41,31 @@ public class AIController : MonoBehaviour
         if (snake != null)
         {
             snake.SetAI(true);
+            
+            // ✅ FIX: Đồng bộ tốc độ với Player nếu bật
+            if (matchPlayerSpeed)
+            {
+                SyncSpeedWithPlayer();
+            }
+        }
+    }
+
+    /// <summary>
+    /// ✅ NEW: Đồng bộ tốc độ với Player
+    /// </summary>
+    private void SyncSpeedWithPlayer()
+    {
+        if (GameManager.Instance == null) return;
+
+        // Tìm Player Snake (ID = 1)
+        var playerSnake = GameManager.Instance.GetSnakeByID(1);
+        if (playerSnake != null && snake != null)
+        {
+            // Copy tốc độ từ Player
+            float playerSpeed = playerSnake.GetMoveInterval();
+            snake.SetMoveSpeed(playerSpeed);
+            
+            Debug.Log($"[AI {snake.PlayerName}] ⚙️ Synced speed with Player: {playerSpeed}s/move");
         }
     }
 
@@ -47,6 +73,12 @@ public class AIController : MonoBehaviour
     {
         if (snake == null || snake.IsDead)
             return;
+
+        // ✅ FIX: Liên tục sync tốc độ với Player (khi Player ăn food tăng tốc)
+        if (matchPlayerSpeed && Time.frameCount % 30 == 0) // Check mỗi 30 frames
+        {
+            SyncSpeedWithPlayer();
+        }
 
         if (Time.time - lastThinkTime >= thinkDelay)
         {

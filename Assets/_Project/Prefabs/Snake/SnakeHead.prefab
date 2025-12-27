@@ -11,9 +11,7 @@ GameObject:
   - component: {fileID: 8007776328813118175}
   - component: {fileID: 1809472054113825056}
   - component: {fileID: 9159779723909500301}
-  - component: {fileID: 927729859172347566}
-  - component: {fileID: 2173814945877820959}
-  - component: {fileID: -1693227036555074053}
+  - component: {fileID: -6249194057334997257}
   m_Layer: 0
   m_Name: SnakeHead
   m_TagString: SnakeHead
@@ -31,7 +29,7 @@ Transform:
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 636.50903, y: 512.52313, z: 0}
-  m_LocalScale: {x: 0.1, y: 0.1, z: 1}
+  m_LocalScale: {x: 0.55, y: 0.55, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
@@ -140,38 +138,7 @@ BoxCollider2D:
   m_AutoTiling: 0
   m_Size: {x: 0.9, y: 0.9}
   m_EdgeRadius: 0
---- !u!114 &927729859172347566
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1024879442085240105}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ff60f9527b1a89242a3c719d50f5bba2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::OutlineEffect
-  outlineColor: {r: 0, g: 1, b: 0, a: 1}
-  outlineSize: 0.1
-  enableOutline: 1
---- !u!114 &2173814945877820959
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1024879442085240105}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: a0ad6bccb3d8ffc4b9e58af11d173fe4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::GlowEffect
-  glowColor: {r: 0, g: 1, b: 0, a: 0.5}
-  glowSize: 1.5
-  pulseSpeed: 1
-  enablePulse: 1
---- !u!114 &-1693227036555074053
+--- !u!114 &-6249194057334997257
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -186,5 +153,3 @@ MonoBehaviour:
   segmentType: 0
   useGradient: 1
   gradientIntensity: 0.3
-  smoothMovement: 1
-  smoothSpeed: 10

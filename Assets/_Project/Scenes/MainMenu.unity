@@ -130,6 +130,7 @@ GameObject:
   - component: {fileID: 17619026}
   - component: {fileID: 17619028}
   - component: {fileID: 17619027}
+  - component: {fileID: 17619029}
   m_Layer: 5
   m_Name: Backtxt
   m_TagString: Untagged
@@ -255,6 +256,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 17619025}
   m_CullTransparentMesh: 1
+--- !u!114 &17619029
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 17619025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: highscore.back
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
+  autoSwitchFont: 1
 --- !u!1 &52874216
 GameObject:
   m_ObjectHideFlags: 0
@@ -873,7 +890,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 1}
   m_AnchorMax: {x: 0.5, y: 1}
-  m_AnchoredPosition: {x: 0.010009766, y: -162.3498}
+  m_AnchoredPosition: {x: 0.010009766, y: -174.35675}
   m_SizeDelta: {x: 999.99, y: 143}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &368952276
@@ -923,13 +940,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 100
-  m_fontSizeBase: 100
+  m_fontSize: 80
+  m_fontSizeBase: 80
   m_fontWeight: 400
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 33
+  m_fontStyle: 17
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -987,7 +1004,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
-  localizationKey: highscore.title
+  localizationKey: menu.title
   updateOnEnable: 1
   vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
   autoSwitchFont: 1
@@ -1371,7 +1388,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1955448553306655712, guid: 16e2738b27244d943a0a8aab6fae93cc, type: 3}
+  m_Sprite: {fileID: 6615216369290591180, guid: a93f446714473a846812e1947f4715dc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1839,6 +1856,7 @@ GameObject:
   - component: {fileID: 882585254}
   - component: {fileID: 882585256}
   - component: {fileID: 882585255}
+  - component: {fileID: 882585257}
   m_Layer: 5
   m_Name: Title
   m_TagString: Untagged
@@ -1862,8 +1880,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 409.06537}
-  m_SizeDelta: {x: 700, y: 80}
+  m_AnchoredPosition: {x: 0, y: 376.23108}
+  m_SizeDelta: {x: 1000, y: 120}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &882585255
 MonoBehaviour:
@@ -1964,6 +1982,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 882585253}
   m_CullTransparentMesh: 1
+--- !u!114 &882585257
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 882585253}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: highscore.title
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
+  autoSwitchFont: 1
 --- !u!1 &1120477016
 GameObject:
   m_ObjectHideFlags: 0
@@ -2920,7 +2954,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: -1955448553306655712, guid: 16e2738b27244d943a0a8aab6fae93cc, type: 3}
+  m_Sprite: {fileID: 6615216369290591180, guid: a93f446714473a846812e1947f4715dc, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -3704,6 +3738,7 @@ GameObject:
   - component: {fileID: 1732062384}
   - component: {fileID: 1732062386}
   - component: {fileID: 1732062385}
+  - component: {fileID: 1732062387}
   m_Layer: 5
   m_Name: Text (TMP)
   m_TagString: Untagged
@@ -3829,6 +3864,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1732062383}
   m_CullTransparentMesh: 1
+--- !u!114 &1732062387
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1732062383}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a54627bcfd4e695428be5de7ad80533b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::LocalizedText
+  localizationKey: highscore.clear
+  updateOnEnable: 1
+  vietnameseFont: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
+  autoSwitchFont: 1
 --- !u!1 &1780343460
 GameObject:
   m_ObjectHideFlags: 0

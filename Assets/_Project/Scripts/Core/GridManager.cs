@@ -13,10 +13,10 @@ public class GridManager : Singleton<GridManager>
     [SerializeField] private float cellSize = 0.5f;
 
     [Header("Play Area (for snake spawning)")]
-    [SerializeField] private int playMinX = 12;
-    [SerializeField] private int playMaxX = 26;
-    [SerializeField] private int playMinY = 10;
-    [SerializeField] private int playMaxY = 17;
+    [SerializeField] private int playMinX = 0;
+    [SerializeField] private int playMaxX = 0;
+    [SerializeField] private int playMinY = 0;
+    [SerializeField] private int playMaxY = 0;
 
     [Header("Visual Settings")]
     [SerializeField] private bool showGrid = true;

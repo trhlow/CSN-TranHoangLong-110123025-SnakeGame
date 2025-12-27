@@ -75,8 +75,7 @@ public class LocalizationManager : Singleton<LocalizationManager>
         AddString("menu.quit", "Thoát", "Quit");
 
         // Gameplay
-        AddString("game.player1", "Người Chơi 1", "Player 1");
-        AddString("game.player2", "Người Chơi 2", "Player 2");
+        AddString("game.player1", "Người Chơi", "Player");
         AddString("game.ai", "Máy", "AI");
         AddString("game.score", "Điểm", "Score");
         AddString("game.combo", "Combo", "Combo");

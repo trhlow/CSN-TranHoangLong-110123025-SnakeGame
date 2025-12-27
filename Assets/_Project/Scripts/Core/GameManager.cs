@@ -277,14 +277,14 @@ public class GameManager : Singleton<GameManager>
             return;
         }
 
-        // Spawn Player 1
+        // ✅ FIX: Spawn Player 1 với màu đã lưu
         Vector3 player1SpawnPos = new Vector3(-spawnDistanceFromCenter, 0, 0);
-        Debug.Log($"[GameManager] 📍 Player 1 spawn position: {player1SpawnPos}");
-
+        Color playerColor = LoadSnakeColor(1, Color.green); // Load màu đã chọn trong Settings
+        Debug.Log($"[GameManager] 🎨 Player 1 color: #{ColorUtility.ToHtmlStringRGB(playerColor)}");
         var player1 = SpawnSnake(
             prefab: playerSnakePrefab,
             id: 1,
-            color: GetPlayerColor(1),
+            color: playerColor,
             isAI: false,
             name: "Player 1",
             spawnPos: player1SpawnPos,
@@ -313,11 +313,14 @@ public class GameManager : Singleton<GameManager>
             GameObject aiBotPrefab = aiSnakePrefab != null ? aiSnakePrefab : playerSnakePrefab;
             Vector3 aiSpawnPos = new Vector3(spawnDistanceFromCenter, 0, 0);
             Debug.Log($"[GameManager] 📍 AI spawn position: {aiSpawnPos}");
-
+            
+            // ✅ FIX: AI luôn là màu cyan, không load từ Settings
+            Color aiColor = Color.cyan;
+            Debug.Log($"[GameManager] 🤖 AI color: #{ColorUtility.ToHtmlStringRGB(aiColor)} (CYAN - Fixed)");
             var ai = SpawnSnake(
                 prefab: aiBotPrefab,
                 id: 3,
-                color: GetPlayerColor(3),
+                color: aiColor,
                 isAI: true,
                 name: "AI Bot",
                 spawnPos: aiSpawnPos
@@ -341,7 +344,24 @@ public class GameManager : Singleton<GameManager>
 
         Debug.Log($"[GameManager] 🎮 SpawnAllSnakes DONE. Total snakes: {snakes.Count}");
     }
+    public void SaveSnakeColor(int playerID, Color color)
+    {
+        string key = $"Player{playerID}_SnakeColor";
+        string colorHex = "#" + ColorUtility.ToHtmlStringRGB(color);
+        PlayerPrefs.SetString(key, colorHex);
+        PlayerPrefs.Save();
+    }
 
+    public Color LoadSnakeColor(int playerID, Color defaultColor)
+    {
+        string key = $"Player{playerID}_SnakeColor";
+        if (PlayerPrefs.HasKey(key))
+        {
+            if (ColorUtility.TryParseHtmlString(PlayerPrefs.GetString(key), out Color savedColor))
+                return savedColor;
+        }
+        return defaultColor;
+    }
     private SnakeController SpawnSnake(GameObject prefab, int id, Color color, bool isAI, string name,
         Vector3 spawnPos, KeyCode keyUp = KeyCode.W, KeyCode keyDown = KeyCode.S,
         KeyCode keyLeft = KeyCode.A, KeyCode keyRight = KeyCode.D)
