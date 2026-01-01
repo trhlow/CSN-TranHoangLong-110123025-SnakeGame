@@ -13,7 +13,7 @@ public class AIController : MonoBehaviour
     [SerializeField] private AIStrategy strategy = AIStrategy.Balanced;
 
     [Header("Debug")]
-    [SerializeField] private bool showDebugPath = false;
+    [SerializeField] private bool showDebugPath = true;
     [SerializeField] private bool showDebugInfo = false;
 
     private SnakeController snake;

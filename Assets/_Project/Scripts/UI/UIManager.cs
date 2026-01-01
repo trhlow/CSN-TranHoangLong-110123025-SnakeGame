@@ -204,8 +204,9 @@ public class UIManager : Singleton<UIManager>
 
         if (player1NameText != null)
         {
-            string player1Name = LocalizationManager.Instance != null ?
-                LocalizationManager.Instance.GetLocalizedString("game.player1") : "Player 1";
+            // ✅ Lấy tên thật từ PlayerNameManager
+            string player1Name = PlayerNameManager.Instance != null ? 
+                PlayerNameManager.Instance.GetPlayerName() : "Player";
             player1NameText.text = player1Name;
         }
 
@@ -214,7 +215,7 @@ public class UIManager : Singleton<UIManager>
             if (gameMode == GameManager.GameMode.VsAI)
             {
                 string aiName = LocalizationManager.Instance != null ?
-                    LocalizationManager.Instance.GetLocalizedString("game.ai") : "AI";
+                    LocalizationManager.Instance.GetLocalizedString("game.ai") : "AI Bot";
                 player2NameText.text = aiName;
                 player2NameText.gameObject.SetActive(true);
             }
@@ -337,10 +338,11 @@ public class UIManager : Singleton<UIManager>
         {
             if (hasWinner)
             {
-                string playerKey = $"ui.game_over.player{winnerID}_wins";
-                winnerText.text = LocalizationManager.Instance != null ?
-                    LocalizationManager.Instance.GetLocalizedString(playerKey) :
-                    $"Player {winnerID} Wins!";
+                // ✅ Hiển thị tên người chơi thắng cuộc
+                string winnerName = GetPlayerNameByID(winnerID);
+                string winsLabel = LocalizationManager.Instance != null ?
+                    LocalizationManager.Instance.GetLocalizedString("ui.game_over.wins") : "Wins!";
+                winnerText.text = $"{winnerName} {winsLabel}";
             }
             else
             {
@@ -468,6 +470,34 @@ public class UIManager : Singleton<UIManager>
     {
         // TODO: Implement notification popup
         Debug.Log($"[Notification] {message}");
+    }
+
+    private string GetPlayerNameByID(int playerID)
+    {
+        // Nếu là AI (ID = 3)
+        if (playerID == 3)
+        {
+            return LocalizationManager.Instance != null ?
+                LocalizationManager.Instance.GetLocalizedString("game.ai") : "AI Bot";
+        }
+
+        // Lấy tên từ GameManager nếu có
+        if (GameManager.Instance != null)
+        {
+            var snake = GameManager.Instance.GetSnakeByID(playerID);
+            if (snake != null)
+            {
+                return snake.PlayerName;
+            }
+        }
+
+        // Fallback: lấy từ PlayerNameManager
+        if (playerID == 1 && PlayerNameManager.Instance != null)
+        {
+            return PlayerNameManager.Instance.GetPlayerName();
+        }
+
+        return $"Player {playerID}";
     }
     #endregion
 }

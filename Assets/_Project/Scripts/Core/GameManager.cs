@@ -281,12 +281,16 @@ public class GameManager : Singleton<GameManager>
         Vector3 player1SpawnPos = new Vector3(-spawnDistanceFromCenter, 0, 0);
         Color playerColor = LoadSnakeColor(1, Color.green); // Load màu đã chọn trong Settings
         Debug.Log($"[GameManager] 🎨 Player 1 color: #{ColorUtility.ToHtmlStringRGB(playerColor)}");
+        
+        // ✅ Lấy tên từ PlayerNameManager
+        string playerName = PlayerNameManager.Instance != null ? PlayerNameManager.Instance.PlayerName : "Player 1";
+        Debug.Log($"[GameManager] 👤 Player name: {playerName}");
         var player1 = SpawnSnake(
             prefab: playerSnakePrefab,
             id: 1,
             color: playerColor,
             isAI: false,
-            name: "Player 1",
+            name: playerName, // ✅ Dùng tên thật
             spawnPos: player1SpawnPos,
             keyUp: KeyCode.W,
             keyDown: KeyCode.S,

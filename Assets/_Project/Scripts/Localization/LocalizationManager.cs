@@ -85,6 +85,7 @@ public class LocalizationManager : Singleton<LocalizationManager>
         // Game Over
         AddString("ui.game_over.victory", "CHIẾN THẮNG!", "VICTORY!");
         AddString("ui.game_over.defeat", "THUA CUỘC!", "GAME OVER!");
+        AddString("ui.game_over.wins", "Thắng!", "Wins!");
         AddString("ui.game_over.player1_wins", "Người Chơi 1 Thắng!", "Player 1 Wins!");
         AddString("ui.game_over.player2_wins", "Người Chơi 2 Thắng!", "Player 2 Wins!");
         AddString("ui.game_over.player3_wins", "Máy Thắng!", "AI Wins!");
