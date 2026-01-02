@@ -17,19 +17,7 @@ public class SnakeHeadCollision : MonoBehaviour
         if (snake == null || snake.IsDead)
             return;
 
-        if (collision.CompareTag("Food"))
-        {
-            Debug.Log($"[Head] Hit food: {collision.gameObject.name}");
-            
-            // Gọi method trong SnakeController
-            snake.OnHeadHitFood(collision);
-        }
-        else if (collision.CompareTag("SnakeBody") || collision.CompareTag("SnakeHead"))
-        {
-            Debug.Log($"[Head] Hit snake: {collision.gameObject.name}");
-            
-            // Gọi method trong SnakeController
-            snake.OnHeadHitSnake(collision);
-        }
+        // ✅ FIX: Gọi OnSegmentTriggerEnter thay vì OnHeadHitFood/OnHeadHitSnake
+        snake.OnSegmentTriggerEnter(collision, gameObject);
     }
 }

@@ -4,18 +4,16 @@ using UnityEngine.SceneManagement;
 public class MainMenuManager : MonoBehaviour
 {
     [Header("UI Panels")]
-    [SerializeField] private GameObject mainMenuPanel;      // Panel chính với buttons
-    [SerializeField] private GameObject settingsPanel;      // Panel cài đặt
-    [SerializeField] private GameObject highScorePanel;     // Panel bảng xếp hạng
+    [SerializeField] private GameObject mainMenuPanel;
+    [SerializeField] private GameObject settingsPanel;
+    [SerializeField] private GameObject highScorePanel;
 
     private void Start()
     {
         Debug.Log("[MainMenu] 🎬 MainMenuManager started");
 
-        // Show main menu, hide others
         ShowMainMenu();
 
-        // Play menu music
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlayMusic("menu", true);
@@ -63,10 +61,7 @@ public class MainMenuManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[MainMenu] ❌ GameManager.Instance is NULL!");
-            Debug.LogError("[MainMenu] ❌ Did you create GameManager GameObject in MainMenu scene?");
-
-            // Fallback: Load scene trực tiếp
+            Debug.LogError("[MainMenu] ❌ GameManager. Instance is NULL!");
             SceneManager.LoadScene("Gameplay");
         }
     }
@@ -88,7 +83,7 @@ public class MainMenuManager : MonoBehaviour
         }
         else
         {
-            Debug.LogError("[MainMenu] ❌ GameManager.Instance is NULL!");
+            Debug.LogError("[MainMenu] ❌ GameManager. Instance is NULL!");
             SceneManager.LoadScene("Gameplay");
         }
     }
@@ -104,7 +99,6 @@ public class MainMenuManager : MonoBehaviour
             AudioManager.Instance.PlaySFX("ButtonClick");
         }
 
-        // ✅ Load scene Settings
         UnityEngine.SceneManagement.SceneManager.LoadScene("Settings");
     }
 
@@ -121,7 +115,6 @@ public class MainMenuManager : MonoBehaviour
         {
             ShowHighScores();
 
-            // Refresh high scores display
             HighScoreUI highScoreUI = highScorePanel.GetComponent<HighScoreUI>();
             if (highScoreUI != null)
             {
@@ -130,7 +123,7 @@ public class MainMenuManager : MonoBehaviour
         }
         else
         {
-            Debug.LogWarning("[MainMenu] ⚠️ High Score Panel not assigned! Assign it in Inspector.");
+            Debug.LogWarning("[MainMenu] ⚠️ High Score Panel not assigned!");
         }
     }
 

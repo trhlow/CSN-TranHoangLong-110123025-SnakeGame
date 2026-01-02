@@ -1,67 +1,57 @@
-using UnityEngine;
+﻿using UnityEngine;
 
-public class PlayerNameManager : MonoBehaviour
+public class PlayerNameManager : Singleton<PlayerNameManager>
 {
-    private static PlayerNameManager instance;
-    public static PlayerNameManager Instance
-    {
-        get
-        {
-            if (instance == null)
-            {
-                GameObject go = new GameObject("PlayerNameManager");
-                instance = go.AddComponent<PlayerNameManager>();
-                DontDestroyOnLoad(go);
-            }
-            return instance;
-        }
-    }
-
     private const string PLAYER_NAME_KEY = "PlayerName";
-    private string playerName = "";
+    private const string DEFAULT_NAME = "Người chơi";
+
+    private string playerName;
 
     public string PlayerName => GetPlayerName();
 
-    void Awake()
+    protected override void Awake()
     {
-        if (instance == null)
-        {
-            instance = this;
-            DontDestroyOnLoad(gameObject);
-            LoadPlayerName();
-        }
-        else if (instance != this)
-        {
-            Destroy(gameObject);
-        }
+        base.Awake();
+        LoadPlayerName();
     }
 
     private void LoadPlayerName()
     {
-        playerName = PlayerPrefs.GetString(PLAYER_NAME_KEY, "");
+        playerName = PlayerPrefs.GetString(PLAYER_NAME_KEY, DEFAULT_NAME);
+        Debug.Log($"[PlayerNameManager] 📂 Loaded name: {playerName}");
     }
 
-    public void SetPlayerName(string name)
+    public void SetPlayerName(string newName)
     {
-        if (!string.IsNullOrEmpty(name))
+        if (string.IsNullOrWhiteSpace(newName))
         {
-            playerName = name.Trim();
-            PlayerPrefs.SetString(PLAYER_NAME_KEY, playerName);
-            PlayerPrefs.Save();
+            Debug.LogWarning("[PlayerNameManager] ⚠️ Tên không hợp lệ!");
+            return;
         }
+
+        playerName = newName.Trim();
+        PlayerPrefs.SetString(PLAYER_NAME_KEY, playerName);
+        PlayerPrefs.Save();
+
+        Debug.Log($"[PlayerNameManager] 💾 Saved name: {playerName}");
     }
 
     public string GetPlayerName()
     {
         if (string.IsNullOrEmpty(playerName))
         {
-            playerName = PlayerPrefs.GetString(PLAYER_NAME_KEY, "Player");
+            playerName = PlayerPrefs.GetString(PLAYER_NAME_KEY, DEFAULT_NAME);
         }
         return playerName;
     }
 
+    public void ResetToDefault()
+    {
+        SetPlayerName(DEFAULT_NAME);
+    }
+
     public bool HasPlayerName()
     {
-        return !string.IsNullOrEmpty(GetPlayerName()) && GetPlayerName() != "Player";
+        return !string.IsNullOrEmpty(GetPlayerName()) && GetPlayerName() != DEFAULT_NAME;
     }
 }

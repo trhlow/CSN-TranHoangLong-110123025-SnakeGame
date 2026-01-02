@@ -39,13 +39,10 @@ public class LocalizationManager : Singleton<LocalizationManager>
     {
         base.Awake();
         LoadLocalizedStrings();
-        LoadLanguagePreference(); // ✅ Chỉ load, KHÔNG apply
+        LoadLanguagePreference();
 
         Debug.Log($"[LocalizationManager] ✅ Initialized with language: {currentLanguage}");
     }
-
-    // ✅ REMOVED: Không còn auto refresh trong Start()
-    // private void Start() { RefreshAllLocalizedTexts(); }
 
     private void LoadLanguagePreference()
     {
@@ -57,9 +54,8 @@ public class LocalizationManager : Singleton<LocalizationManager>
         }
         else
         {
-            // ✅ Lần đầu tiên: Default là Vietnamese
             currentLanguage = Language.Vietnamese;
-            Debug.Log($"[LocalizationManager] 🆕 First time, using default: Vietnamese");
+            Debug.Log($"[LocalizationManager] 🆕 First time, using default:  Vietnamese");
         }
     }
 
@@ -68,14 +64,13 @@ public class LocalizationManager : Singleton<LocalizationManager>
         // Main Menu
         AddString("menu.title", "RẮN SĂN MỒI", "SNAKE GAME");
         AddString("menu.single_player", "Chơi Một Mình", "Single Player");
-        AddString("menu.multiplayer", "Chơi Hai Người", "Multiplayer");
         AddString("menu.vs_ai", "Đấu Với Máy", "VS AI");
         AddString("menu.settings", "Cài Đặt", "Settings");
         AddString("menu.high_scores", "Bảng Xếp Hạng", "High Scores");
         AddString("menu.quit", "Thoát", "Quit");
 
         // Gameplay
-        AddString("game.player1", "Người Chơi", "Player");
+        AddString("game.player", "Người Chơi", "Player");
         AddString("game.ai", "Máy", "AI");
         AddString("game.score", "Điểm", "Score");
         AddString("game.combo", "Combo", "Combo");
@@ -86,16 +81,15 @@ public class LocalizationManager : Singleton<LocalizationManager>
         AddString("ui.game_over.victory", "CHIẾN THẮNG!", "VICTORY!");
         AddString("ui.game_over.defeat", "THUA CUỘC!", "GAME OVER!");
         AddString("ui.game_over.wins", "Thắng!", "Wins!");
-        AddString("ui.game_over.player1_wins", "Người Chơi 1 Thắng!", "Player 1 Wins!");
-        AddString("ui.game_over.player2_wins", "Người Chơi 2 Thắng!", "Player 2 Wins!");
-        AddString("ui.game_over.player3_wins", "Máy Thắng!", "AI Wins!");
-        AddString("ui.game_over.final_score", "Điểm Cuối", "Final Score");
+        AddString("ui.game_over.player_wins", "Người Chơi Thắng!", "Player Wins!");
+        AddString("ui.game_over.ai_wins", "Máy Thắng!", "AI Wins!");
+        AddString("ui. game_over.final_score", "Điểm Cuối", "Final Score");
         AddString("ui.game_over.new_high_score", "ĐIỂM CAO MỚI!", "NEW HIGH SCORE!");
         AddString("ui.game_over.restart", "Chơi Lại", "Restart");
         AddString("ui.game_over.main_menu", "Menu Chính", "Main Menu");
 
         // Pause Menu
-        AddString("pause.title", "TẠM DỪNG", "PAUSED");
+        AddString("pause. title", "TẠM DỪNG", "PAUSED");
         AddString("pause.resume", "Tiếp Tục", "Resume");
         AddString("pause.settings", "Cài Đặt", "Settings");
         AddString("pause.main_menu", "Menu Chính", "Main Menu");
@@ -103,28 +97,26 @@ public class LocalizationManager : Singleton<LocalizationManager>
 
         // Settings
         AddString("settings.title", "CÀI ĐẶT", "SETTINGS");
+        AddString("settings.player_name", "Tên Người Chơi", "Player Name");
+        AddString("settings.current_name", "Tên hiện tại", "Current Name");
+        AddString("settings.save_name", "Lưu Tên", "Save Name");
         AddString("settings.language", "Ngôn Ngữ", "Language");
         AddString("settings.vietnamese", "Tiếng Việt", "Vietnamese");
         AddString("settings.english", "Tiếng Anh", "English");
         AddString("settings.audio", "Âm Thanh", "Audio");
         AddString("settings.music_volume", "Âm Lượng Nhạc", "Music Volume");
         AddString("settings.sfx_volume", "Âm Lượng Hiệu Ứng", "SFX Volume");
-        AddString("settings.graphics", "Đồ Họa", "Graphics");
-        AddString("settings.quality", "Chất Lượng", "Quality");
-        AddString("settings.fullscreen", "Toàn Màn Hình", "Fullscreen");
         AddString("settings.snake_color", "Màu Rắn", "Snake Color");
         AddString("settings.back", "Quay Lại", "Back");
-        AddString("settings.apply", "Áp Dụng", "Apply");
         AddString("settings.reset", "Đặt Lại", "Reset");
 
         // High Scores
         AddString("highscore.title", "BẢNG XẾP HẠNG", "HIGH SCORES");
-        AddString("highscore.no_scores","Chưa có điểm cao nào\nHãy chơi để ghi điểm!","No high scores yet\nPlay to set a record!");
+        AddString("highscore.no_scores", "Chưa có điểm cao nào\nHãy chơi để ghi điểm!", "No high scores yet\nPlay to set a record!");
         AddString("highscore.rank", "Hạng", "Rank");
         AddString("highscore.name", "Tên", "Name");
         AddString("highscore.score", "Điểm", "Score");
-        AddString("highscore.date", "Ngày", "Date");
-        AddString("highscore.mode", "Chế Độ", "Mode");
+        AddString("highscore. date", "Ngày", "Date");
         AddString("highscore.clear", "Xóa Bảng", "Clear Board");
         AddString("highscore.back", "Quay Lại", "Back");
 
@@ -173,25 +165,22 @@ public class LocalizationManager : Singleton<LocalizationManager>
         }
 
         Debug.LogWarning($"[LocalizationManager] Missing key: {key}");
-        return $"[MISSING: {key}]";
+        return $"[MISSING:  {key}]";
     }
 
-    // ✅ CHỈ đổi ngôn ngữ khi USER CHỌN
     public void SetLanguage(Language newLanguage)
     {
         if (currentLanguage == newLanguage)
         {
-            Debug.Log($"[LocalizationManager] Language already set to: {newLanguage}");
+            Debug.Log($"[LocalizationManager] Language already set to:  {newLanguage}");
             return;
         }
 
         currentLanguage = newLanguage;
 
-        // ✅ Lưu lựa chọn của user
         PlayerPrefs.SetInt(languagePrefsKey, (int)newLanguage);
         PlayerPrefs.Save();
 
-        // ✅ Apply ngay lập tức
         RefreshAllLocalizedTexts();
 
         Debug.Log($"[LocalizationManager] ✅ Language changed to: {newLanguage}");

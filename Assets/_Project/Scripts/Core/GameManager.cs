@@ -280,12 +280,12 @@ public class GameManager : Singleton<GameManager>
         // ✅ FIX: Spawn Player 1 với màu đã lưu
         Vector3 player1SpawnPos = new Vector3(-spawnDistanceFromCenter, 0, 0);
         Color playerColor = LoadSnakeColor(1, Color.green); // Load màu đã chọn trong Settings
-        Debug.Log($"[GameManager] 🎨 Player 1 color: #{ColorUtility.ToHtmlStringRGB(playerColor)}");
-        
+        Debug.Log($"[GameManager] 🎨 Player color: #{ColorUtility.ToHtmlStringRGB(playerColor)}");
+
         // ✅ Lấy tên từ PlayerNameManager
-        string playerName = PlayerNameManager.Instance != null ? PlayerNameManager.Instance.PlayerName : "Player 1";
+        string playerName = PlayerNameManager.Instance != null ? PlayerNameManager.Instance.PlayerName : "Người chơi";
         Debug.Log($"[GameManager] 👤 Player name: {playerName}");
-        var player1 = SpawnSnake(
+        var player = SpawnSnake(
             prefab: playerSnakePrefab,
             id: 1,
             color: playerColor,
@@ -298,9 +298,9 @@ public class GameManager : Singleton<GameManager>
             keyRight: KeyCode.D
         );
 
-        if (player1 != null)
+        if (player != null)
         {
-            snakes.Add(player1);
+            snakes.Add(player);
             InitializeComboTracker(1);
             Debug.Log($"[GameManager] ✅ Player 1 spawned successfully at {player1SpawnPos}");
         }
@@ -350,7 +350,7 @@ public class GameManager : Singleton<GameManager>
     }
     public void SaveSnakeColor(int playerID, Color color)
     {
-        string key = $"Player{playerID}_SnakeColor";
+        string key = "PlayerSnakeColor"; // ✅ Xoá playerID
         string colorHex = "#" + ColorUtility.ToHtmlStringRGB(color);
         PlayerPrefs.SetString(key, colorHex);
         PlayerPrefs.Save();
@@ -358,7 +358,7 @@ public class GameManager : Singleton<GameManager>
 
     public Color LoadSnakeColor(int playerID, Color defaultColor)
     {
-        string key = $"Player{playerID}_SnakeColor";
+        string key = "PlayerSnakeColor"; // ✅ Xoá playerID
         if (PlayerPrefs.HasKey(key))
         {
             if (ColorUtility.TryParseHtmlString(PlayerPrefs.GetString(key), out Color savedColor))

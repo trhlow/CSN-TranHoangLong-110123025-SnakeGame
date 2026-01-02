@@ -13,11 +13,11 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private GameObject settingsPanel;
     [SerializeField] private GameObject highScorePanel;
 
-    [Header("Gameplay UI - Score")]
-    [SerializeField] private TMP_Text player1ScoreText;
-    [SerializeField] private TMP_Text player2ScoreText;
-    [SerializeField] private TMP_Text player1NameText;
-    [SerializeField] private TMP_Text player2NameText;
+    [Header("HUD Elements")]
+    [SerializeField] private GameObject playerHUD;
+    [SerializeField] private TMP_Text playerScoreText;
+    [SerializeField] private TMP_Text playerComboText;
+    [SerializeField] private TMP_Text playerNameText;
 
     [Header("Gameplay UI - Timer & Combo")]
     [SerializeField] private TMP_Text timerText;
@@ -39,7 +39,9 @@ public class UIManager : Singleton<UIManager>
     [SerializeField] private float scoreAnimationDuration = 1.5f;
 
     private Coroutine comboCoroutine;
+    private Coroutine scoreAnimationCoroutine;
     private int currentCombo = 0;
+    private int lastPlayerScore = 0;
 
     protected override void Awake()
     {
@@ -115,8 +117,8 @@ public class UIManager : Singleton<UIManager>
             gameplayPanel.SetActive(true);
         }
 
-        // Initialize player names based on game mode
-        UpdatePlayerNames();
+        // Initialize player name
+        UpdatePlayerName();
     }
 
     public void ShowPauseMenu()
@@ -127,7 +129,7 @@ public class UIManager : Singleton<UIManager>
 
             if (pauseTitleText != null && LocalizationManager.Instance != null)
             {
-                pauseTitleText.text = LocalizationManager.Instance.GetLocalizedString("pause.title");
+                pauseTitleText.text = LocalizationManager.Instance.GetLocalizedString("pause. title");
             }
         }
     }
@@ -176,53 +178,73 @@ public class UIManager : Singleton<UIManager>
     #region Score Display
     public void UpdateScore(int playerID, int score)
     {
-        if (playerID == 1 && player1ScoreText != null)
+        if (playerScoreText != null)
         {
-            string scoreLabel = LocalizationManager.Instance != null ?
-                LocalizationManager.Instance.GetLocalizedString("game.score") : "Score";
-            player1ScoreText.text = $"{scoreLabel}: {score}";
+            if (scoreAnimationCoroutine != null)
+            {
+                StopCoroutine(scoreAnimationCoroutine);
+            }
+            scoreAnimationCoroutine = StartCoroutine(AnimateScoreUpdate(playerScoreText, lastPlayerScore, score));
         }
-        else if (playerID == 2 && player2ScoreText != null)
-        {
-            string scoreLabel = LocalizationManager.Instance != null ?
-                LocalizationManager.Instance.GetLocalizedString("game.score") : "Score";
-            player2ScoreText.text = $"{scoreLabel}: {score}";
-        }
-        else if (playerID == 3 && player2ScoreText != null) // AI
-        {
-            string scoreLabel = LocalizationManager.Instance != null ?
-                LocalizationManager.Instance.GetLocalizedString("game.score") : "Score";
-            player2ScoreText.text = $"{scoreLabel}: {score}";
-        }
+
+        lastPlayerScore = score;
     }
 
-    private void UpdatePlayerNames()
+    private IEnumerator AnimateScoreUpdate(TMP_Text scoreText, int fromScore, int toScore)
     {
-        if (GameManager.Instance == null) return;
+        float elapsed = 0f;
+        float duration = 0.5f;
 
-        var gameMode = GameManager.Instance.CurrentGameMode;
-
-        if (player1NameText != null)
+        while (elapsed < duration)
         {
-            // ✅ Lấy tên thật từ PlayerNameManager
-            string player1Name = PlayerNameManager.Instance != null ? 
-                PlayerNameManager.Instance.GetPlayerName() : "Player";
-            player1NameText.text = player1Name;
+            elapsed += Time.deltaTime;
+            float t = elapsed / duration;
+            int currentScore = Mathf.RoundToInt(Mathf.Lerp(fromScore, toScore, t));
+            scoreText.text = currentScore.ToString("N0");
+            yield return null;
         }
 
-        if (player2NameText != null)
+        scoreText.text = toScore.ToString("N0");
+        StartCoroutine(PulseText(scoreText, 1.2f, 0.2f));
+    }
+
+    private IEnumerator PulseText(TMP_Text text, float scale, float duration)
+    {
+        if (text == null) yield break;
+
+        Vector3 originalScale = text.transform.localScale;
+        Vector3 targetScale = originalScale * scale;
+
+        float elapsed = 0f;
+
+        while (elapsed < duration / 2f)
         {
-            if (gameMode == GameManager.GameMode.VsAI)
-            {
-                string aiName = LocalizationManager.Instance != null ?
-                    LocalizationManager.Instance.GetLocalizedString("game.ai") : "AI Bot";
-                player2NameText.text = aiName;
-                player2NameText.gameObject.SetActive(true);
-            }
-            else
-            {
-                player2NameText.gameObject.SetActive(false);
-            }
+            elapsed += Time.deltaTime;
+            float t = elapsed / (duration / 2f);
+            text.transform.localScale = Vector3.Lerp(originalScale, targetScale, t);
+            yield return null;
+        }
+
+        elapsed = 0f;
+
+        while (elapsed < duration / 2f)
+        {
+            elapsed += Time.deltaTime;
+            float t = elapsed / (duration / 2f);
+            text.transform.localScale = Vector3.Lerp(targetScale, originalScale, t);
+            yield return null;
+        }
+
+        text.transform.localScale = originalScale;
+    }
+
+    private void UpdatePlayerName()
+    {
+        if (playerNameText != null)
+        {
+            string playerName = PlayerNameManager.Instance != null ?
+                PlayerNameManager.Instance.GetPlayerName() : "Người chơi";
+            playerNameText.text = playerName;
         }
     }
     #endregion
@@ -235,7 +257,7 @@ public class UIManager : Singleton<UIManager>
             float gameTime = GameManager.Instance.GameTime;
             int minutes = Mathf.FloorToInt(gameTime / 60f);
             int seconds = Mathf.FloorToInt(gameTime % 60f);
-            timerText.text = $"{minutes:00}:{seconds:00}";
+            timerText.text = $"{minutes:00}:{seconds: 00}";
         }
     }
     #endregion
@@ -245,7 +267,7 @@ public class UIManager : Singleton<UIManager>
     {
         currentCombo = comboCount;
 
-        if (comboCount < 2) // Chỉ hiển thị combo từ 2 trở lên
+        if (comboCount < 2)
         {
             if (comboPanel != null)
             {
@@ -263,10 +285,9 @@ public class UIManager : Singleton<UIManager>
         {
             string comboLabel = LocalizationManager.Instance != null ?
                 LocalizationManager.Instance.GetLocalizedString("game.combo") : "Combo";
-            comboText.text = $"{comboLabel} x{comboCount}!";
+            comboText.text = $"{comboLabel} x{comboCount}! ";
         }
 
-        // Restart coroutine để reset timer
         if (comboCoroutine != null)
         {
             StopCoroutine(comboCoroutine);
@@ -307,10 +328,8 @@ public class UIManager : Singleton<UIManager>
 
     private IEnumerator ShowGameOverCoroutine(bool hasWinner, int finalScore, int winnerID)
     {
-        // Wait for dramatic effect
         yield return new WaitForSecondsRealtime(1f);
 
-        // Hide gameplay UI
         if (gameplayPanel != null)
         {
             gameplayPanel.SetActive(false);
@@ -318,30 +337,26 @@ public class UIManager : Singleton<UIManager>
 
         yield return new WaitForSecondsRealtime(0.5f);
 
-        // Show game over panel
         if (gameOverPanel != null)
         {
             gameOverPanel.SetActive(true);
         }
 
-        // Set title
         if (gameOverTitleText != null)
         {
             string titleKey = hasWinner ? "ui.game_over.victory" : "ui.game_over.defeat";
             gameOverTitleText.text = LocalizationManager.Instance != null ?
                 LocalizationManager.Instance.GetLocalizedString(titleKey) :
-                (hasWinner ? "VICTORY!" : "GAME OVER!");
+                (hasWinner ? "CHIẾN THẮNG!" : "THUA CUỘC!");
         }
 
-        // Set winner text
         if (winnerText != null)
         {
             if (hasWinner)
             {
-                // ✅ Hiển thị tên người chơi thắng cuộc
                 string winnerName = GetPlayerNameByID(winnerID);
                 string winsLabel = LocalizationManager.Instance != null ?
-                    LocalizationManager.Instance.GetLocalizedString("ui.game_over.wins") : "Wins!";
+                    LocalizationManager.Instance.GetLocalizedString("ui.game_over.wins") : "Thắng! ";
                 winnerText.text = $"{winnerName} {winsLabel}";
             }
             else
@@ -350,13 +365,11 @@ public class UIManager : Singleton<UIManager>
             }
         }
 
-        // Animate final score
         if (finalScoreText != null)
         {
             yield return StartCoroutine(AnimateScoreText(finalScoreText, 0, finalScore));
         }
 
-        // Check and show high score
         bool isNewHighScore = false;
         if (HighScoreManager.Instance != null)
         {
@@ -382,16 +395,15 @@ public class UIManager : Singleton<UIManager>
 
             string scoreLabel = LocalizationManager.Instance != null ?
                 LocalizationManager.Instance.GetLocalizedString("ui.game_over.final_score") :
-                "Final Score";
+                "Điểm Cuối";
 
-            text.text = $"{scoreLabel}: {currentScore}";
+            text.text = $"{scoreLabel}:  {currentScore}";
             yield return null;
         }
 
-        // Ensure final value is exact
         string finalLabel = LocalizationManager.Instance != null ?
             LocalizationManager.Instance.GetLocalizedString("ui.game_over.final_score") :
-            "Final Score";
+            "Điểm Cuối";
         text.text = $"{finalLabel}: {toScore}";
     }
 
@@ -468,7 +480,6 @@ public class UIManager : Singleton<UIManager>
     #region Utility
     public void ShowNotification(string message, float duration = 2f)
     {
-        // TODO: Implement notification popup
         Debug.Log($"[Notification] {message}");
     }
 
@@ -478,7 +489,7 @@ public class UIManager : Singleton<UIManager>
         if (playerID == 3)
         {
             return LocalizationManager.Instance != null ?
-                LocalizationManager.Instance.GetLocalizedString("game.ai") : "AI Bot";
+                LocalizationManager.Instance.GetLocalizedString("game.ai") : "Máy";
         }
 
         // Lấy tên từ GameManager nếu có
@@ -491,13 +502,13 @@ public class UIManager : Singleton<UIManager>
             }
         }
 
-        // Fallback: lấy từ PlayerNameManager
-        if (playerID == 1 && PlayerNameManager.Instance != null)
+        // Fallback:  lấy từ PlayerNameManager
+        if (PlayerNameManager.Instance != null)
         {
             return PlayerNameManager.Instance.GetPlayerName();
         }
 
-        return $"Player {playerID}";
+        return "Người chơi";
     }
     #endregion
 }

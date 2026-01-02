@@ -5,15 +5,10 @@ public class ColorPalette : ScriptableObject
 {
     public static ColorPalette Instance { get; private set; }
 
-    [Header("Player 1 Colors")]
-    public Color player1Primary = new Color(0f, 1f, 0f);
-    public Color player1Secondary = new Color(0.4f, 1f, 0.4f);
-    public Color player1Glow = new Color(0f, 1f, 0f, 0.5f);
-
-    [Header("Player 2 Colors")]
-    public Color player2Primary = new Color(1f, 0f, 1f);
-    public Color player2Secondary = new Color(1f, 0.4f, 1f);
-    public Color player2Glow = new Color(1f, 0f, 1f, 0.5f);
+    [Header("Player Colors")]
+    public Color playerPrimary = new Color(0f, 1f, 0f);
+    public Color playerSecondary = new Color(0.4f, 1f, 0.4f);
+    public Color playerGlow = new Color(0f, 1f, 0f, 0.5f);
 
     [Header("AI Colors")]
     public Color aiPrimary = new Color(0f, 1f, 1f);
@@ -52,8 +47,7 @@ public class ColorPalette : ScriptableObject
     {
         return playerID switch
         {
-            1 => player1Primary,
-            2 => player2Primary,
+            1 => playerPrimary,
             3 => aiPrimary,
             _ => Color.white
         };
@@ -63,8 +57,7 @@ public class ColorPalette : ScriptableObject
     {
         return playerID switch
         {
-            1 => player1Glow,
-            2 => player2Glow,
+            1 => playerGlow,
             3 => aiGlow,
             _ => Color.white
         };

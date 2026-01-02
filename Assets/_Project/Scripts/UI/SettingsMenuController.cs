@@ -10,6 +10,11 @@ public class SettingsMenuController : MonoBehaviour
     [SerializeField] private TMP_Text musicVolumeText;
     [SerializeField] private TMP_Text sfxVolumeText;
 
+    [Header("Player Name Settings")]
+    [SerializeField] private TMP_InputField playerNameInputField;
+    [SerializeField] private Button saveNameButton;
+    [SerializeField] private TMP_Text currentNameText;
+
     [Header("Language Settings")]
     [SerializeField] private Button vietnameseButton;
     [SerializeField] private Button englishButton;
@@ -17,41 +22,29 @@ public class SettingsMenuController : MonoBehaviour
     [Header("Buttons")]
     [SerializeField] private Button backButton;
 
-    [Header("Player 1 Color Buttons")]
-    [SerializeField] private Button p1ColorGreenButton;
-    [SerializeField] private Button p1ColorRedButton;
-    [SerializeField] private Button p1ColorBlueButton;
-    [SerializeField] private Button p1ColorYellowButton;
-    [SerializeField] private Button p1ColorPurpleButton;
-    [SerializeField] private Button p1ColorOrangeButton;
-    [SerializeField] private Button p1ColorCyanButton;
-    [SerializeField] private Button p1ColorPinkButton;
-    [SerializeField] private Button p1ColorWhiteButton;
-    [SerializeField] private Button p1ColorBlackButton;
-
-    [Header("Player 2 Color Buttons")]
-    [SerializeField] private Button p2ColorGreenButton;
-    [SerializeField] private Button p2ColorRedButton;
-    [SerializeField] private Button p2ColorBlueButton;
-    [SerializeField] private Button p2ColorYellowButton;
-    [SerializeField] private Button p2ColorPurpleButton;
-    [SerializeField] private Button p2ColorOrangeButton;
-    [SerializeField] private Button p2ColorCyanButton;
-    [SerializeField] private Button p2ColorPinkButton;
-    [SerializeField] private Button p2ColorWhiteButton;
-    [SerializeField] private Button p2ColorBlackButton;
+    [Header("Player Color Buttons")]
+    [SerializeField] private Button colorGreenButton;
+    [SerializeField] private Button colorRedButton;
+    [SerializeField] private Button colorBlueButton;
+    [SerializeField] private Button colorYellowButton;
+    [SerializeField] private Button colorPurpleButton;
+    [SerializeField] private Button colorOrangeButton;
+    [SerializeField] private Button colorCyanButton;
+    [SerializeField] private Button colorPinkButton;
+    [SerializeField] private Button colorWhiteButton;
+    [SerializeField] private Button colorBlackButton;
 
     [Header("Visual Feedback")]
-    [SerializeField] private Image player1ColorPreview;
-    [SerializeField] private Image player2ColorPreview;
+    [SerializeField] private Image playerColorPreview;
     [SerializeField] private TMP_Text selectedLanguageText;
 
-    private Color player1Color;
-    private Color player2Color;
+    private Color playerColor;
+
     private void Awake()
     {
         Debug.Log("[SettingsMenuController] Awake called");
     }
+
     private void Start()
     {
         Debug.Log("[SettingsMenuController] Start called");
@@ -61,6 +54,7 @@ public class SettingsMenuController : MonoBehaviour
         UpdateVisuals();
         Debug.Log("[SettingsMenuController] Initialization complete");
     }
+
     private void OnEnable()
     {
         Debug.Log("[SettingsMenuController] OnEnable called");
@@ -68,21 +62,16 @@ public class SettingsMenuController : MonoBehaviour
 
     private void OnDisable()
     {
-        Debug.Log("[SettingsMenuController] OnDisable called - SOMETHING DISABLED THIS!");
+        Debug.Log("[SettingsMenuController] OnDisable called");
     }
+
     private void LoadSettings()
     {
-        // Load Player 1 color
-        float r1 = PlayerPrefs.GetFloat("Player1ColorR", 0f);
-        float g1 = PlayerPrefs.GetFloat("Player1ColorG", 1f); // Default Green
-        float b1 = PlayerPrefs.GetFloat("Player1ColorB", 0f);
-        player1Color = new Color(r1, g1, b1, 1f);
-
-        // Load Player 2 color
-        float r2 = PlayerPrefs.GetFloat("Player2ColorR", 1f); // Default Red
-        float g2 = PlayerPrefs.GetFloat("Player2ColorG", 0f);
-        float b2 = PlayerPrefs.GetFloat("Player2ColorB", 0f);
-        player2Color = new Color(r2, g2, b2, 1f);
+        // Load Player color
+        float r = PlayerPrefs.GetFloat("PlayerColorR", 0f);
+        float g = PlayerPrefs.GetFloat("PlayerColorG", 1f); // Default Green
+        float b = PlayerPrefs.GetFloat("PlayerColorB", 0f);
+        playerColor = new Color(r, g, b, 1f);
     }
 
     private void InitializeSettings()
@@ -102,6 +91,20 @@ public class SettingsMenuController : MonoBehaviour
                 UpdateSFXVolumeText(AudioManager.Instance.SFXVolume);
             }
         }
+
+        // ✅ NEW: Load player name
+        if (PlayerNameManager.Instance != null)
+        {
+            string currentName = PlayerNameManager.Instance.PlayerName;
+            if (playerNameInputField != null)
+            {
+                playerNameInputField.text = currentName;
+            }
+            if (currentNameText != null)
+            {
+                currentNameText.text = $"Tên hiện tại: {currentName}";
+            }
+        }
     }
 
     private void SetupListeners()
@@ -112,6 +115,17 @@ public class SettingsMenuController : MonoBehaviour
 
         if (sfxVolumeSlider != null)
             sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
+
+        // ✅ NEW: Player name input
+        if (playerNameInputField != null)
+        {
+            playerNameInputField.onEndEdit.AddListener(OnPlayerNameChanged);
+        }
+
+        if (saveNameButton != null)
+        {
+            saveNameButton.onClick.AddListener(OnSaveNameClicked);
+        }
 
         // Language buttons
         if (vietnameseButton != null)
@@ -124,36 +138,24 @@ public class SettingsMenuController : MonoBehaviour
         if (backButton != null)
             backButton.onClick.AddListener(OnBackClicked);
 
-        // Player 1 color buttons
-        SetupColorButton(p1ColorGreenButton, Color.green, "Green", 1);
-        SetupColorButton(p1ColorRedButton, Color.red, "Red", 1);
-        SetupColorButton(p1ColorBlueButton, Color.blue, "Blue", 1);
-        SetupColorButton(p1ColorYellowButton, Color.yellow, "Yellow", 1);
-        SetupColorButton(p1ColorPurpleButton, new Color(0.5f, 0f, 1f), "Purple", 1);
-        SetupColorButton(p1ColorOrangeButton, new Color(1f, 0.5f, 0f), "Orange", 1);
-        SetupColorButton(p1ColorCyanButton, Color.cyan, "Cyan", 1);
-        SetupColorButton(p1ColorPinkButton, new Color(1f, 0.4f, 0.7f), "Pink", 1);
-        SetupColorButton(p1ColorWhiteButton, Color.white, "White", 1);
-        SetupColorButton(p1ColorBlackButton, new Color(0.2f, 0.2f, 0.2f), "Black", 1);
-
-        // Player 2 color buttons
-        SetupColorButton(p2ColorGreenButton, Color.green, "Green", 2);
-        SetupColorButton(p2ColorRedButton, Color.red, "Red", 2);
-        SetupColorButton(p2ColorBlueButton, Color.blue, "Blue", 2);
-        SetupColorButton(p2ColorYellowButton, Color.yellow, "Yellow", 2);
-        SetupColorButton(p2ColorPurpleButton, new Color(0.5f, 0f, 1f), "Purple", 2);
-        SetupColorButton(p2ColorOrangeButton, new Color(1f, 0.5f, 0f), "Orange", 2);
-        SetupColorButton(p2ColorCyanButton, Color.cyan, "Cyan", 2);
-        SetupColorButton(p2ColorPinkButton, new Color(1f, 0.4f, 0.7f), "Pink", 2);
-        SetupColorButton(p2ColorWhiteButton, Color.white, "White", 2);
-        SetupColorButton(p2ColorBlackButton, new Color(0.2f, 0.2f, 0.2f), "Black", 2);
+        // Player color buttons
+        SetupColorButton(colorGreenButton, Color.green, "Green");
+        SetupColorButton(colorRedButton, Color.red, "Red");
+        SetupColorButton(colorBlueButton, Color.blue, "Blue");
+        SetupColorButton(colorYellowButton, Color.yellow, "Yellow");
+        SetupColorButton(colorPurpleButton, new Color(0.5f, 0f, 1f), "Purple");
+        SetupColorButton(colorOrangeButton, new Color(1f, 0.5f, 0f), "Orange");
+        SetupColorButton(colorCyanButton, Color.cyan, "Cyan");
+        SetupColorButton(colorPinkButton, new Color(1f, 0.4f, 0.7f), "Pink");
+        SetupColorButton(colorWhiteButton, Color.white, "White");
+        SetupColorButton(colorBlackButton, new Color(0.2f, 0.2f, 0.2f), "Black");
     }
 
-    private void SetupColorButton(Button button, Color color, string colorName, int playerID)
+    private void SetupColorButton(Button button, Color color, string colorName)
     {
         if (button == null) return;
 
-        button.onClick.AddListener(() => SetPlayerColor(color, colorName, playerID));
+        button.onClick.AddListener(() => SetPlayerColor(color, colorName));
 
         // Set button color
         Image buttonImage = button.GetComponent<Image>();
@@ -179,7 +181,6 @@ public class SettingsMenuController : MonoBehaviour
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.SetSFXVolume(value);
-            // Play test sound
             AudioManager.Instance.PlaySFX("ButtonClick");
         }
 
@@ -203,6 +204,60 @@ public class SettingsMenuController : MonoBehaviour
     }
     #endregion
 
+    #region Player Name Settings
+    private void OnPlayerNameChanged(string newName)
+    {
+        if (string.IsNullOrWhiteSpace(newName))
+        {
+            Debug.LogWarning("[SettingsMenu] Tên không được để trống!");
+            if (PlayerNameManager.Instance != null)
+            {
+                playerNameInputField.text = PlayerNameManager.Instance.PlayerName;
+            }
+            return;
+        }
+
+        // Giới hạn độ dài tên
+        if (newName.Length > 15)
+        {
+            newName = newName.Substring(0, 15);
+            playerNameInputField.text = newName;
+        }
+
+        SavePlayerName(newName);
+    }
+
+    private void OnSaveNameClicked()
+    {
+        if (AudioManager.Instance != null)
+        {
+            AudioManager.Instance.PlaySFX("ButtonClick");
+        }
+
+        string newName = playerNameInputField.text.Trim();
+        if (!string.IsNullOrWhiteSpace(newName))
+        {
+            SavePlayerName(newName);
+            Debug.Log($"[SettingsMenu] ✅ Đã lưu tên: {newName}");
+        }
+    }
+
+    private void SavePlayerName(string newName)
+    {
+        if (PlayerNameManager.Instance != null)
+        {
+            PlayerNameManager.Instance.SetPlayerName(newName);
+
+            if (currentNameText != null)
+            {
+                currentNameText.text = $"Tên hiện tại: {newName}";
+            }
+
+            Debug.Log($"[SettingsMenu] 👤 Đã đổi tên thành: {newName}");
+        }
+    }
+    #endregion
+
     #region Language Settings
     private void SetLanguage(LocalizationManager.Language language)
     {
@@ -222,32 +277,17 @@ public class SettingsMenuController : MonoBehaviour
     #endregion
 
     #region Color Settings
-    private void SetPlayerColor(Color color, string colorName, int playerID)
+    private void SetPlayerColor(Color color, string colorName)
     {
-        if (playerID == 1)
-        {
-            player1Color = color;
+        playerColor = color;
 
-            // Save Player 1 color
-            PlayerPrefs.SetFloat("Player1ColorR", color.r);
-            PlayerPrefs.SetFloat("Player1ColorG", color.g);
-            PlayerPrefs.SetFloat("Player1ColorB", color.b);
-            PlayerPrefs.Save();
+        // Save Player color
+        PlayerPrefs.SetFloat("PlayerColorR", color.r);
+        PlayerPrefs.SetFloat("PlayerColorG", color.g);
+        PlayerPrefs.SetFloat("PlayerColorB", color.b);
+        PlayerPrefs.Save();
 
-            Debug.Log($"[Settings] Player 1 color: {colorName}");
-        }
-        else if (playerID == 2)
-        {
-            player2Color = color;
-
-            // Save Player 2 color
-            PlayerPrefs.SetFloat("Player2ColorR", color.r);
-            PlayerPrefs.SetFloat("Player2ColorG", color.g);
-            PlayerPrefs.SetFloat("Player2ColorB", color.b);
-            PlayerPrefs.Save();
-
-            Debug.Log($"[Settings] Player 2 color: {colorName}");
-        }
+        Debug.Log($"[Settings] Player color:  {colorName}");
 
         // Play sound
         if (AudioManager.Instance != null)
@@ -258,14 +298,7 @@ public class SettingsMenuController : MonoBehaviour
         // Update ColorPalette if exists
         if (ColorPalette.Instance != null)
         {
-            if (playerID == 1)
-            {
-                ColorPalette.Instance.player1Primary = color;
-            }
-            else if (playerID == 2)
-            {
-                ColorPalette.Instance.player2Primary = color;
-            }
+            ColorPalette.Instance.playerPrimary = color;
         }
 
         UpdateVisuals();
@@ -275,15 +308,10 @@ public class SettingsMenuController : MonoBehaviour
     #region Visual Updates
     private void UpdateVisuals()
     {
-        // Update color previews
-        if (player1ColorPreview != null)
+        // Update color preview
+        if (playerColorPreview != null)
         {
-            player1ColorPreview.color = player1Color;
-        }
-
-        if (player2ColorPreview != null)
-        {
-            player2ColorPreview.color = player2Color;
+            playerColorPreview.color = playerColor;
         }
 
         // Update language text
@@ -304,7 +332,6 @@ public class SettingsMenuController : MonoBehaviour
             AudioManager.Instance.PlaySFX("ButtonClick");
         }
 
-        // Return to main menu
         if (GameManager.Instance != null)
         {
             GameManager.Instance.LoadMainMenu();
@@ -332,9 +359,14 @@ public class SettingsMenuController : MonoBehaviour
             LocalizationManager.Instance.SetLanguage(LocalizationManager.Language.Vietnamese);
         }
 
-        // Reset colors
-        SetPlayerColor(Color.green, "Green", 1);
-        SetPlayerColor(Color.red, "Red", 2);
+        // Reset color
+        SetPlayerColor(Color.green, "Green");
+
+        // Reset player name
+        if (PlayerNameManager.Instance != null)
+        {
+            PlayerNameManager.Instance.ResetToDefault();
+        }
 
         InitializeSettings();
         UpdateVisuals();
