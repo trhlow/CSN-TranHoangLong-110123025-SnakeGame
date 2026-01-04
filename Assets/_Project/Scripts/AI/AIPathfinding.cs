@@ -1,98 +1,63 @@
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Simple BFS Pathfinding cho Snake AI - Full Version
+/// </summary>
 public class AIPathfinding
 {
-    private class Node
-    {
-        public Vector2Int position;
-        public Node parent;
-        public int gCost;
-        public int hCost;
-        public int fCost => gCost + hCost;
-
-        public Node(Vector2Int pos)
-        {
-            position = pos;
-            parent = null;
-            gCost = 0;
-            hCost = 0;
-        }
-    }
-
     private GridManager gridManager;
-    private int maxIterations = 1000;
+    private const int MAX_ITERATIONS = 500;
 
     public AIPathfinding(GridManager grid)
     {
         gridManager = grid;
     }
 
+    /// <summary>
+    /// Tìm đường từ start đến target bằng BFS
+    /// </summary>
     public List<Vector2Int> FindPath(Vector2Int start, Vector2Int target, List<Vector2Int> obstacles)
     {
-        if (!gridManager.IsValidPosition(start) || !gridManager.IsValidPosition(target))
-        {
+        if (!IsValidPosition(start) || !IsValidPosition(target))
             return null;
-        }
 
         if (obstacles.Contains(target))
-        {
             return null;
-        }
 
-        List<Node> openSet = new List<Node>();
-        HashSet<Vector2Int> closedSet = new HashSet<Vector2Int>();
+        Queue<Vector2Int> queue = new Queue<Vector2Int>();
+        Dictionary<Vector2Int, Vector2Int> cameFrom = new Dictionary<Vector2Int, Vector2Int>();
+        HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
 
-        Node startNode = new Node(start);
-        openSet.Add(startNode);
+        queue.Enqueue(start);
+        visited.Add(start);
 
         int iterations = 0;
 
-        while (openSet.Count > 0 && iterations < maxIterations)
+        while (queue.Count > 0 && iterations < MAX_ITERATIONS)
         {
             iterations++;
+            Vector2Int current = queue.Dequeue();
 
-            Node currentNode = openSet[0];
-            for (int i = 1; i < openSet.Count; i++)
+            if (current == target)
             {
-                if (openSet[i].fCost < currentNode.fCost ||
-                    (openSet[i].fCost == currentNode.fCost && openSet[i].hCost < currentNode.hCost))
-                {
-                    currentNode = openSet[i];
-                }
+                return ReconstructPath(cameFrom, start, current);
             }
 
-            openSet.Remove(currentNode);
-            closedSet.Add(currentNode.position);
+            Vector2Int[] neighbors = {
+                current + Vector2Int.up,
+                current + Vector2Int.down,
+                current + Vector2Int.left,
+                current + Vector2Int.right
+            };
 
-            if (currentNode.position == target)
+            foreach (Vector2Int next in neighbors)
             {
-                return RetracePath(startNode, currentNode);
-            }
-
-            foreach (Vector2Int neighborPos in GetNeighbors(currentNode.position))
-            {
-                if (closedSet.Contains(neighborPos) || obstacles.Contains(neighborPos))
+                if (!visited.Contains(next) && IsValidPosition(next) && !obstacles.Contains(next))
                 {
-                    continue;
-                }
-
-                int newGCost = currentNode.gCost + 1;
-                Node neighborNode = openSet.FirstOrDefault(n => n.position == neighborPos);
-
-                if (neighborNode == null)
-                {
-                    neighborNode = new Node(neighborPos);
-                    neighborNode.gCost = newGCost;
-                    neighborNode.hCost = GetManhattanDistance(neighborPos, target);
-                    neighborNode.parent = currentNode;
-                    openSet.Add(neighborNode);
-                }
-                else if (newGCost < neighborNode.gCost)
-                {
-                    neighborNode.gCost = newGCost;
-                    neighborNode.parent = currentNode;
+                    visited.Add(next);
+                    cameFrom[next] = current;
+                    queue.Enqueue(next);
                 }
             }
         }
@@ -100,17 +65,17 @@ public class AIPathfinding
         return null;
     }
 
+    /// <summary>
+    /// Tìm hướng an toàn nhất
+    /// </summary>
     public Vector2Int FindSafeDirection(Vector2Int currentPos, List<Vector2Int> obstacles)
     {
-        List<Vector2Int> directions = new List<Vector2Int>
-        {
+        Vector2Int[] directions = {
             Vector2Int.up,
             Vector2Int.down,
             Vector2Int.left,
             Vector2Int.right
         };
-
-        directions = directions.OrderBy(x => Random.value).ToList();
 
         Vector2Int bestDirection = Vector2Int.zero;
         int bestScore = -1;
@@ -119,12 +84,10 @@ public class AIPathfinding
         {
             Vector2Int nextPos = currentPos + dir;
 
-            if (!gridManager.IsValidPosition(nextPos) || obstacles.Contains(nextPos))
-            {
+            if (!IsValidPosition(nextPos) || obstacles.Contains(nextPos))
                 continue;
-            }
 
-            int score = EvaluatePosition(nextPos, obstacles);
+            int score = EvaluateSafety(nextPos, dir, obstacles);
 
             if (score > bestScore)
             {
@@ -136,104 +99,111 @@ public class AIPathfinding
         return bestDirection;
     }
 
-    private int EvaluatePosition(Vector2Int pos, List<Vector2Int> obstacles)
+    private int EvaluateSafety(Vector2Int pos, Vector2Int direction, List<Vector2Int> obstacles)
     {
         int score = 0;
 
-        foreach (Vector2Int neighborPos in GetNeighbors(pos))
+        // 1. Đếm ô trống xung quanh
+        int freeNeighbors = CountFreeNeighbors(pos, obstacles);
+        score += freeNeighbors * 10;
+
+        // 2. Không gian phía trước
+        int spaceAhead = CountSpaceAhead(pos, direction, obstacles);
+        score += spaceAhead * 5;
+
+        // 3. Khoảng cách đến tường
+        int distToWall = GetDistanceToWall(pos);
+        if (distToWall < 2)
         {
-            if (gridManager.IsValidPosition(neighborPos) && !obstacles.Contains(neighborPos))
-            {
-                score += 10;
-            }
+            score -= 20;
         }
 
-        int centerX = gridManager.GridWidth / 2;
-        int centerY = gridManager.GridHeight / 2;
-        Vector2Int center = new Vector2Int(centerX, centerY);
-        int distanceToCenter = GetManhattanDistance(pos, center);
-        score += (gridManager.GridWidth - distanceToCenter) / 2;
-
-        int freeSpaces = CountFreeSpaces(pos, obstacles, 3);
-        score += freeSpaces * 5;
+        // 4. Tránh chỗ chật
+        if (freeNeighbors < 2)
+        {
+            score -= 50;
+        }
 
         return score;
     }
 
-    private int CountFreeSpaces(Vector2Int start, List<Vector2Int> obstacles, int maxDepth)
+    private int CountFreeNeighbors(Vector2Int pos, List<Vector2Int> obstacles)
     {
-        HashSet<Vector2Int> visited = new HashSet<Vector2Int>();
-        Queue<(Vector2Int pos, int depth)> queue = new Queue<(Vector2Int, int)>();
-        queue.Enqueue((start, 0));
-        visited.Add(start);
-
         int count = 0;
+        Vector2Int[] neighbors = {
+            pos + Vector2Int.up,
+            pos + Vector2Int.down,
+            pos + Vector2Int.left,
+            pos + Vector2Int.right
+        };
 
-        while (queue.Count > 0)
+        foreach (Vector2Int neighbor in neighbors)
         {
-            var (currentPos, depth) = queue.Dequeue();
-            count++;
-
-            if (depth >= maxDepth)
-                continue;
-
-            foreach (Vector2Int neighborPos in GetNeighbors(currentPos))
+            if (IsValidPosition(neighbor) && !obstacles.Contains(neighbor))
             {
-                if (visited.Contains(neighborPos) ||
-                    !gridManager.IsValidPosition(neighborPos) ||
-                    obstacles.Contains(neighborPos))
-                {
-                    continue;
-                }
-
-                visited.Add(neighborPos);
-                queue.Enqueue((neighborPos, depth + 1));
+                count++;
             }
         }
 
         return count;
     }
 
-    private List<Vector2Int> RetracePath(Node startNode, Node endNode)
+    private int CountSpaceAhead(Vector2Int start, Vector2Int direction, List<Vector2Int> obstacles)
+    {
+        int count = 0;
+        Vector2Int current = start;
+        int maxCheck = 5;
+
+        for (int i = 0; i < maxCheck; i++)
+        {
+            current += direction;
+
+            if (!IsValidPosition(current) || obstacles.Contains(current))
+                break;
+
+            count++;
+        }
+
+        return count;
+    }
+
+    private int GetDistanceToWall(Vector2Int pos)
+    {
+        int minDist = Mathf.Min(
+            pos.x,
+            pos.y,
+            gridManager.GridWidth - pos.x - 1,
+            gridManager.GridHeight - pos.y - 1
+        );
+
+        return minDist;
+    }
+
+    private bool IsValidPosition(Vector2Int pos)
+    {
+        return pos.x >= 0 && pos.x < gridManager.GridWidth &&
+               pos.y >= 0 && pos.y < gridManager.GridHeight;
+    }
+
+    private List<Vector2Int> ReconstructPath(Dictionary<Vector2Int, Vector2Int> cameFrom, Vector2Int start, Vector2Int current)
     {
         List<Vector2Int> path = new List<Vector2Int>();
-        Node currentNode = endNode;
 
-        while (currentNode != startNode && currentNode != null)
+        while (cameFrom.ContainsKey(current))
         {
-            path.Add(currentNode.position);
-            currentNode = currentNode.parent;
+            path.Add(current);
+            current = cameFrom[current];
+
+            if (current == start)
+                break;
         }
 
         path.Reverse();
         return path;
     }
 
-    private List<Vector2Int> GetNeighbors(Vector2Int pos)
+    public int GetManhattanDistance(Vector2Int from, Vector2Int to)
     {
-        List<Vector2Int> neighbors = new List<Vector2Int>();
-
-        Vector2Int[] directions = {
-            Vector2Int.up,
-            Vector2Int.down,
-            Vector2Int.left,
-            Vector2Int.right
-        };
-
-        foreach (Vector2Int dir in directions)
-        {
-            Vector2Int neighborPos = pos + dir;
-            if (gridManager.IsValidPosition(neighborPos))
-            {
-                neighbors.Add(neighborPos);
-            }
-        }
-
-        return neighbors;
-    }
-
-    private int GetManhattanDistance(Vector2Int a, Vector2Int b)
-    {
-        return Mathf.Abs(a.x - b.x) + Mathf.Abs(a.y - b.y);
+        return Mathf.Abs(from.x - to.x) + Mathf.Abs(from.y - to.y);
     }
 }
