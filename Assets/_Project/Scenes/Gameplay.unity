@@ -1971,7 +1971,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: "Ng\u01B0\u1EDDi ch\u01A1i"
+  m_text: "Ng\u01B0\u1EDDi Ch\u01A1i"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 82f26d47dea60004486901563a148d94, type: 2}
   m_sharedMaterial: {fileID: 516676237640682841, guid: 82f26d47dea60004486901563a148d94, type: 2}
@@ -3197,7 +3197,7 @@ GameObject:
   - component: {fileID: 1794444615}
   - component: {fileID: 1794444614}
   m_Layer: 5
-  m_Name: Player1HUD
+  m_Name: PlayerHUD
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -3383,10 +3383,10 @@ MonoBehaviour:
   gameOverPanel: {fileID: 908133686}
   settingsPanel: {fileID: 0}
   highScorePanel: {fileID: 0}
-  player1ScoreText: {fileID: 517772858}
-  player2ScoreText: {fileID: 0}
-  player1NameText: {fileID: 1027889328}
-  player2NameText: {fileID: 0}
+  playerHUD: {fileID: 1794444612}
+  playerScoreText: {fileID: 517772858}
+  playerComboText: {fileID: 2129381156}
+  playerNameText: {fileID: 1027889328}
   timerText: {fileID: 0}
   comboText: {fileID: 2129381156}
   comboPanel: {fileID: 0}

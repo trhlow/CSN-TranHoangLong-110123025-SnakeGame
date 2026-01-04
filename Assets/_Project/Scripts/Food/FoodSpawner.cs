@@ -27,7 +27,17 @@ public class FoodSpawner : Singleton<FoodSpawner>
 
     private List<GameObject> activeFoods = new List<GameObject>();
     private Coroutine autoSpawnCoroutine;
+    // ✅ THÊM METHOD NÀY VÀO FoodSpawner. cs
 
+    /// <summary>
+    /// ✅ NEW: Lấy danh sách tất cả food (cho AI)
+    /// </summary>
+    public List<GameObject> GetAllFoods()
+    {
+        // Remove null entries
+        activeFoods.RemoveAll(f => f == null);
+        return new List<GameObject>(activeFoods);
+    }
     private void Start()
     {
         if (autoSpawn)
@@ -251,11 +261,6 @@ public class FoodSpawner : Singleton<FoodSpawner>
         }
     }
 
-    public List<GameObject> GetAllFoods()
-    {
-        activeFoods.RemoveAll(food => food == null);
-        return new List<GameObject>(activeFoods);
-    }
 
     public GameObject GetNearestFood(Vector2Int position)
     {

@@ -1,41 +1,117 @@
-using UnityEngine;
-using UnityEngine.UI;
-using UnityEngine.SceneManagement;
 using TMPro;
+using UnityEngine;
+using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
-/// <summary>
-/// UI Controller cho màn hình nhập tên
-/// </summary>
 public class PlayerNameInputUI : MonoBehaviour
 {
     [Header("UI References")]
     [SerializeField] private TMP_InputField nameInputField;
-    [SerializeField] private Button confirmButton;
+    [SerializeField] private Button startButton;
     [SerializeField] private TMP_Text titleText;
-    [SerializeField] private TMP_Text placeholderText;
     [SerializeField] private TMP_Text errorText;
+    [SerializeField] private TMP_Text buttonText; // ✅ Text của button (thay đổi theo context)
 
     [Header("Settings")]
     [SerializeField] private int minNameLength = 2;
-    [SerializeField] private int maxNameLength = 20;
-    [SerializeField] private string nextSceneName = "MainMenu";
+    [SerializeField] private int maxNameLength = 15;
+
+    private bool isChangingName = false; // ✅ Đang đổi tên hay lần đầu? 
 
     private void Start()
     {
-        Debug.Log("[PlayerNameInput] Scene started");
-
-        // Setup UI
+        CheckContext();
         SetupUI();
+        SetupListeners();
+        LoadExistingName();
+    }
 
-        // Check nếu đã có tên thì skip
-        if (PlayerNameManager.Instance != null && PlayerNameManager.Instance.HasPlayerName())
+    private void CheckContext()
+    {
+        // ✅ Kiểm tra xem có phải đang đổi tên không
+        isChangingName = PlayerPrefs.GetInt("IsChangingName", 0) == 1;
+
+        if (isChangingName)
         {
-            Debug.Log("[PlayerNameInput] Player already has name, skipping to MainMenu");
-            LoadMainMenu();
+            PlayerPrefs.DeleteKey("IsChangingName"); // Xoá flag
+            PlayerPrefs.Save();
+        }
+    }
+
+    private void SetupUI()
+    {
+        // ✅ Đổi title tùy context
+        if (titleText != null)
+        {
+            if (isChangingName)
+            {
+                titleText.text = "ĐỔI TÊN NGƯỜI CHƠI";
+            }
+            else
+            {
+                titleText.text = "NHẬP TÊN CỦA BẠN";
+            }
+        }
+
+        // ✅ Đổi button text
+        if (buttonText != null)
+        {
+            if (isChangingName)
+            {
+                buttonText.text = "LƯU TÊN";
+            }
+            else
+            {
+                buttonText.text = "BẮT ĐẦU CHƠI";
+            }
+        }
+
+        // Placeholder
+        if (nameInputField != null && nameInputField.placeholder is TMP_Text placeholder)
+        {
+            placeholder.text = "Tên người chơi... ";
+        }
+
+        // Hide error
+        if (errorText != null)
+        {
+            errorText.gameObject.SetActive(false);
+        }
+    }
+
+    private void SetupListeners()
+    {
+        if (startButton != null)
+        {
+            startButton.onClick.AddListener(OnStartButtonClicked);
+        }
+
+        if (nameInputField != null)
+        {
+            nameInputField.onValueChanged.AddListener(OnNameChanged);
+            nameInputField.characterLimit = maxNameLength;
+        }
+    }
+
+    private void LoadExistingName()
+    {
+        // ✅ Nếu đang đổi tên → load tên cũ vào input
+        if (isChangingName && PlayerNameManager.Instance != null)
+        {
+            string currentName = PlayerNameManager.Instance.GetPlayerName();
+            if (nameInputField != null)
+            {
+                nameInputField.text = currentName;
+            }
+        }
+        // ✅ Nếu lần đầu nhưng đã có tên → skip
+        else if (!isChangingName && PlayerNameManager.Instance != null && PlayerNameManager.Instance.HasPlayerName())
+        {
+            SceneManager.LoadScene("MainMenu");
             return;
         }
 
-        // Focus vào input field
+        // Focus
         if (nameInputField != null)
         {
             nameInputField.Select();
@@ -43,70 +119,17 @@ public class PlayerNameInputUI : MonoBehaviour
         }
     }
 
-    private void SetupUI()
+    private void OnNameChanged(string newName)
     {
-        // Setup title text
-        if (titleText != null)
-        {
-            if (LocalizationManager.Instance != null)
-            {
-                titleText.text = LocalizationManager.Instance.GetLocalizedString("enter_your_name");
-            }
-            else
-            {
-                titleText.text = "Nhập tên của bạn";
-            }
-        }
-
-        // Setup placeholder
-        if (placeholderText != null)
-        {
-            placeholderText.text = "Tên người chơi...";
-        }
-
-        // Setup button listener
-        if (confirmButton != null)
-        {
-            confirmButton.onClick.AddListener(OnConfirmClicked);
-        }
-
-        // Setup input field listener
-        if (nameInputField != null)
-        {
-            nameInputField.onValueChanged.AddListener(OnNameChanged);
-            nameInputField.onSubmit.AddListener(OnSubmit);
-        }
-
-        // Hide error initially
-        if (errorText != null)
-        {
-            errorText.gameObject.SetActive(false);
-        }
-    }
-
-    private void OnNameChanged(string name)
-    {
-        // Hide error when typing
         if (errorText != null && errorText.gameObject.activeSelf)
         {
             errorText.gameObject.SetActive(false);
         }
-
-        // Giới hạn độ dài
-        if (name.Length > maxNameLength)
-        {
-            nameInputField.text = name.Substring(0, maxNameLength);
-        }
     }
 
-    private void OnSubmit(string name)
+    private void OnStartButtonClicked()
     {
-        OnConfirmClicked();
-    }
-
-    private void OnConfirmClicked()
-    {
-        string playerName = nameInputField.text.Trim();
+        string playerName = nameInputField != null ? nameInputField.text.Trim() : "";
 
         // Validate
         if (string.IsNullOrWhiteSpace(playerName))
@@ -121,17 +144,11 @@ public class PlayerNameInputUI : MonoBehaviour
             return;
         }
 
-        // Save name
+        // Save
         if (PlayerNameManager.Instance != null)
         {
             PlayerNameManager.Instance.SetPlayerName(playerName);
-        }
-        else
-        {
-            Debug.LogError("[PlayerNameInput] PlayerNameManager.Instance is NULL!");
-            // Fallback: save directly
-            PlayerPrefs.SetString("PlayerName", playerName);
-            PlayerPrefs.Save();
+            Debug.Log($"[PlayerNameInput] ✅ Name saved: {playerName}");
         }
 
         // Play sound
@@ -140,8 +157,15 @@ public class PlayerNameInputUI : MonoBehaviour
             AudioManager.Instance.PlaySFX("ButtonClick");
         }
 
-        // Load MainMenu
-        LoadMainMenu();
+        // ✅ Load scene tùy context
+        if (isChangingName)
+        {
+            SceneManager.LoadScene("Settings"); // Quay lại Settings
+        }
+        else
+        {
+            SceneManager.LoadScene("MainMenu"); // Lần đầu → MainMenu
+        }
     }
 
     private void ShowError(string message)
@@ -152,37 +176,23 @@ public class PlayerNameInputUI : MonoBehaviour
             errorText.gameObject.SetActive(true);
         }
 
-        // Play error sound
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX("Error");
         }
-
-        Debug.LogWarning($"[PlayerNameInput] {message}");
-    }
-
-    private void LoadMainMenu()
-    {
-        Debug.Log($"[PlayerNameInput] Loading {nextSceneName}...");
-        SceneManager.LoadScene(nextSceneName);
     }
 
     private void Update()
     {
-        // Enter key để confirm
         if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
         {
-            OnConfirmClicked();
+            OnStartButtonClicked();
         }
 
-        // Escape để skip (dùng default name)
-        if (Input.GetKeyDown(KeyCode.Escape))
+        // ✅ ESC để quay lại (chỉ khi đang đổi tên)
+        if (isChangingName && Input.GetKeyDown(KeyCode.Escape))
         {
-            if (PlayerNameManager.Instance != null)
-            {
-                PlayerNameManager.Instance.SetPlayerName("Player");
-            }
-            LoadMainMenu();
+            SceneManager.LoadScene("Settings");
         }
     }
 }

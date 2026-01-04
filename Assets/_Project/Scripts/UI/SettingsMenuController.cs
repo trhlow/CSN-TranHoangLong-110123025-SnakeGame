@@ -1,6 +1,7 @@
 ﻿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.SceneManagement;
 
 public class SettingsMenuController : MonoBehaviour
 {
@@ -11,9 +12,8 @@ public class SettingsMenuController : MonoBehaviour
     [SerializeField] private TMP_Text sfxVolumeText;
 
     [Header("Player Name Settings")]
-    [SerializeField] private TMP_InputField playerNameInputField;
-    [SerializeField] private Button saveNameButton;
     [SerializeField] private TMP_Text currentNameText;
+    [SerializeField] private Button changeNameButton; // ✅ NÚT ĐỔI TÊN
 
     [Header("Language Settings")]
     [SerializeField] private Button vietnameseButton;
@@ -40,36 +40,18 @@ public class SettingsMenuController : MonoBehaviour
 
     private Color playerColor;
 
-    private void Awake()
-    {
-        Debug.Log("[SettingsMenuController] Awake called");
-    }
-
     private void Start()
     {
-        Debug.Log("[SettingsMenuController] Start called");
         LoadSettings();
         InitializeSettings();
         SetupListeners();
         UpdateVisuals();
-        Debug.Log("[SettingsMenuController] Initialization complete");
-    }
-
-    private void OnEnable()
-    {
-        Debug.Log("[SettingsMenuController] OnEnable called");
-    }
-
-    private void OnDisable()
-    {
-        Debug.Log("[SettingsMenuController] OnDisable called");
     }
 
     private void LoadSettings()
     {
-        // Load Player color
         float r = PlayerPrefs.GetFloat("PlayerColorR", 0f);
-        float g = PlayerPrefs.GetFloat("PlayerColorG", 1f); // Default Green
+        float g = PlayerPrefs.GetFloat("PlayerColorG", 1f);
         float b = PlayerPrefs.GetFloat("PlayerColorB", 0f);
         playerColor = new Color(r, g, b, 1f);
     }
@@ -92,53 +74,35 @@ public class SettingsMenuController : MonoBehaviour
             }
         }
 
-        // ✅ NEW: Load player name
-        if (PlayerNameManager.Instance != null)
-        {
-            string currentName = PlayerNameManager.Instance.PlayerName;
-            if (playerNameInputField != null)
-            {
-                playerNameInputField.text = currentName;
-            }
-            if (currentNameText != null)
-            {
-                currentNameText.text = $"Tên hiện tại: {currentName}";
-            }
-        }
+        // ✅ Player Name
+        UpdateCurrentNameDisplay();
     }
 
     private void SetupListeners()
     {
-        // Audio sliders
+        // Audio
         if (musicVolumeSlider != null)
             musicVolumeSlider.onValueChanged.AddListener(OnMusicVolumeChanged);
 
         if (sfxVolumeSlider != null)
             sfxVolumeSlider.onValueChanged.AddListener(OnSFXVolumeChanged);
 
-        // ✅ NEW: Player name input
-        if (playerNameInputField != null)
-        {
-            playerNameInputField.onEndEdit.AddListener(OnPlayerNameChanged);
-        }
+        // ✅ Change Name Button
+        if (changeNameButton != null)
+            changeNameButton.onClick.AddListener(OnChangeNameClicked);
 
-        if (saveNameButton != null)
-        {
-            saveNameButton.onClick.AddListener(OnSaveNameClicked);
-        }
-
-        // Language buttons
+        // Language
         if (vietnameseButton != null)
             vietnameseButton.onClick.AddListener(() => SetLanguage(LocalizationManager.Language.Vietnamese));
 
         if (englishButton != null)
             englishButton.onClick.AddListener(() => SetLanguage(LocalizationManager.Language.English));
 
-        // Back button
+        // Back
         if (backButton != null)
             backButton.onClick.AddListener(OnBackClicked);
 
-        // Player color buttons
+        // Colors
         SetupColorButton(colorGreenButton, Color.green, "Green");
         SetupColorButton(colorRedButton, Color.red, "Red");
         SetupColorButton(colorBlueButton, Color.blue, "Blue");
@@ -157,7 +121,6 @@ public class SettingsMenuController : MonoBehaviour
 
         button.onClick.AddListener(() => SetPlayerColor(color, colorName));
 
-        // Set button color
         Image buttonImage = button.GetComponent<Image>();
         if (buttonImage != null)
         {
@@ -172,7 +135,6 @@ public class SettingsMenuController : MonoBehaviour
         {
             AudioManager.Instance.SetMusicVolume(value);
         }
-
         UpdateMusicVolumeText(value);
     }
 
@@ -183,7 +145,6 @@ public class SettingsMenuController : MonoBehaviour
             AudioManager.Instance.SetSFXVolume(value);
             AudioManager.Instance.PlaySFX("ButtonClick");
         }
-
         UpdateSFXVolumeText(value);
     }
 
@@ -205,56 +166,31 @@ public class SettingsMenuController : MonoBehaviour
     #endregion
 
     #region Player Name Settings
-    private void OnPlayerNameChanged(string newName)
+    private void UpdateCurrentNameDisplay()
     {
-        if (string.IsNullOrWhiteSpace(newName))
+        if (currentNameText != null && PlayerNameManager.Instance != null)
         {
-            Debug.LogWarning("[SettingsMenu] Tên không được để trống!");
-            if (PlayerNameManager.Instance != null)
-            {
-                playerNameInputField.text = PlayerNameManager.Instance.PlayerName;
-            }
-            return;
+            string name = PlayerNameManager.Instance.GetPlayerName();
+            currentNameText.text = $"Tên hiện tại: {name}";
         }
-
-        // Giới hạn độ dài tên
-        if (newName.Length > 15)
-        {
-            newName = newName.Substring(0, 15);
-            playerNameInputField.text = newName;
-        }
-
-        SavePlayerName(newName);
     }
 
-    private void OnSaveNameClicked()
+    // ✅ NÚT ĐỔI TÊN → LOAD SCENE PlayerNameInput
+    private void OnChangeNameClicked()
     {
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX("ButtonClick");
         }
 
-        string newName = playerNameInputField.text.Trim();
-        if (!string.IsNullOrWhiteSpace(newName))
-        {
-            SavePlayerName(newName);
-            Debug.Log($"[SettingsMenu] ✅ Đã lưu tên: {newName}");
-        }
-    }
+        Debug.Log("[Settings] Loading PlayerNameInput scene to change name...");
 
-    private void SavePlayerName(string newName)
-    {
-        if (PlayerNameManager.Instance != null)
-        {
-            PlayerNameManager.Instance.SetPlayerName(newName);
+        // ✅ Đánh dấu là đang đổi tên (không phải lần đầu)
+        PlayerPrefs.SetInt("IsChangingName", 1);
+        PlayerPrefs.Save();
 
-            if (currentNameText != null)
-            {
-                currentNameText.text = $"Tên hiện tại: {newName}";
-            }
-
-            Debug.Log($"[SettingsMenu] 👤 Đã đổi tên thành: {newName}");
-        }
+        // Load scene PlayerNameInput
+        SceneManager.LoadScene("PlayerNameInput");
     }
     #endregion
 
@@ -264,7 +200,6 @@ public class SettingsMenuController : MonoBehaviour
         if (LocalizationManager.Instance != null)
         {
             LocalizationManager.Instance.SetLanguage(language);
-            Debug.Log($"[Settings] Language changed to: {language}");
         }
 
         if (AudioManager.Instance != null)
@@ -281,21 +216,16 @@ public class SettingsMenuController : MonoBehaviour
     {
         playerColor = color;
 
-        // Save Player color
         PlayerPrefs.SetFloat("PlayerColorR", color.r);
         PlayerPrefs.SetFloat("PlayerColorG", color.g);
         PlayerPrefs.SetFloat("PlayerColorB", color.b);
         PlayerPrefs.Save();
 
-        Debug.Log($"[Settings] Player color:  {colorName}");
-
-        // Play sound
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.PlaySFX("ButtonClick");
         }
 
-        // Update ColorPalette if exists
         if (ColorPalette.Instance != null)
         {
             ColorPalette.Instance.playerPrimary = color;
@@ -308,13 +238,11 @@ public class SettingsMenuController : MonoBehaviour
     #region Visual Updates
     private void UpdateVisuals()
     {
-        // Update color preview
         if (playerColorPreview != null)
         {
             playerColorPreview.color = playerColor;
         }
 
-        // Update language text
         if (selectedLanguageText != null && LocalizationManager.Instance != null)
         {
             string langName = LocalizationManager.Instance.CurrentLanguage == LocalizationManager.Language.Vietnamese
@@ -338,7 +266,7 @@ public class SettingsMenuController : MonoBehaviour
         }
         else
         {
-            UnityEngine.SceneManagement.SceneManager.LoadScene("MainMenu");
+            SceneManager.LoadScene("MainMenu");
         }
     }
     #endregion
@@ -346,23 +274,19 @@ public class SettingsMenuController : MonoBehaviour
     #region Utility
     public void ResetToDefaults()
     {
-        // Reset audio
         if (AudioManager.Instance != null)
         {
             AudioManager.Instance.SetMusicVolume(0.7f);
             AudioManager.Instance.SetSFXVolume(1f);
         }
 
-        // Reset language
         if (LocalizationManager.Instance != null)
         {
             LocalizationManager.Instance.SetLanguage(LocalizationManager.Language.Vietnamese);
         }
 
-        // Reset color
         SetPlayerColor(Color.green, "Green");
 
-        // Reset player name
         if (PlayerNameManager.Instance != null)
         {
             PlayerNameManager.Instance.ResetToDefault();
@@ -370,8 +294,6 @@ public class SettingsMenuController : MonoBehaviour
 
         InitializeSettings();
         UpdateVisuals();
-
-        Debug.Log("[Settings] Reset to defaults");
     }
     #endregion
 }

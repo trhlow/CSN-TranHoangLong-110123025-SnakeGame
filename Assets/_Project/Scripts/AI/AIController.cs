@@ -1,19 +1,23 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// ✅ YÊU CẦU 3: AI THÔNG MINH - Tránh đâm vào thân, ưu tiên an toàn
+/// </summary>
 [RequireComponent(typeof(SnakeController))]
 public class AIController : MonoBehaviour
 {
     [Header("AI Settings")]
     [SerializeField] private float thinkDelay = 0.15f;
     [SerializeField] private int visionRange = 15;
-    [SerializeField] private bool matchPlayerSpeed = true; // ✅ NEW: Tự động đồng bộ tốc độ với Player
+    [SerializeField] private int lookAheadDepth = 3; // ✅ NEW: Nhìn xa bao nhiêu bước
+    [SerializeField] private bool matchPlayerSpeed = true;
 
     [Header("Strategy")]
     [SerializeField] private AIStrategy strategy = AIStrategy.Balanced;
 
     [Header("Debug")]
-    [SerializeField] private bool showDebugPath = true;
+    [SerializeField] private bool showDebugPath = false;
     [SerializeField] private bool showDebugInfo = false;
 
     private SnakeController snake;
@@ -41,8 +45,7 @@ public class AIController : MonoBehaviour
         if (snake != null)
         {
             snake.SetAI(true);
-            
-            // ✅ FIX: Đồng bộ tốc độ với Player nếu bật
+
             if (matchPlayerSpeed)
             {
                 SyncSpeedWithPlayer();
@@ -50,21 +53,16 @@ public class AIController : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// ✅ NEW: Đồng bộ tốc độ với Player
-    /// </summary>
     private void SyncSpeedWithPlayer()
     {
         if (GameManager.Instance == null) return;
 
-        // Tìm Player Snake (ID = 1)
         var playerSnake = GameManager.Instance.GetSnakeByID(1);
         if (playerSnake != null && snake != null)
         {
-            // Copy tốc độ từ Player
             float playerSpeed = playerSnake.GetMoveInterval();
             snake.SetMoveSpeed(playerSpeed);
-            
+
             Debug.Log($"[AI {snake.PlayerName}] ⚙️ Synced speed with Player: {playerSpeed}s/move");
         }
     }
@@ -74,8 +72,7 @@ public class AIController : MonoBehaviour
         if (snake == null || snake.IsDead)
             return;
 
-        // ✅ FIX: Liên tục sync tốc độ với Player (khi Player ăn food tăng tốc)
-        if (matchPlayerSpeed && Time.frameCount % 30 == 0) // Check mỗi 30 frames
+        if (matchPlayerSpeed && Time.frameCount % 30 == 0)
         {
             SyncSpeedWithPlayer();
         }
@@ -89,31 +86,30 @@ public class AIController : MonoBehaviour
 
     private void Think()
     {
-        // ✅ FIX: Get head position in GRID coordinates
         Vector2Int headGridPos = snake.GetHeadPosition();
         Vector2Int currentDir = snake.GetCurrentDirection();
         List<Vector2Int> obstacles = GetAllObstacles();
 
         if (showDebugInfo)
         {
-            Debug.Log($"[AI {snake.PlayerName}] Head at grid: {headGridPos}, Direction: {currentDir}");
+            Debug.Log($"[AI {snake.PlayerName}] Head at: {headGridPos}, Direction:  {currentDir}");
         }
 
-        // ✅ Priority 1: Immediate danger check
+        // ✅ YÊU CẦU 3: KIỂM TRA NGUY HIỂM TRƯỚC
         if (IsInImmediateDanger(headGridPos, currentDir, obstacles))
         {
             HandleDanger(headGridPos, currentDir, obstacles);
             return;
         }
 
-        // ✅ Priority 2: Follow path to food
+        // ✅ Follow path nếu có
         if (currentPath != null && currentPath.Count > 0)
         {
             FollowPath(headGridPos, obstacles);
             return;
         }
 
-        // ✅ Priority 3: Find and pursue food
+        // ✅ Tìm food
         FindAndMoveToFood(headGridPos, obstacles);
     }
 
@@ -176,27 +172,22 @@ public class AIController : MonoBehaviour
     {
         float score = 0;
 
-        // Distance penalty
         int distance = pathfinding.GetManhattanDistance(headPos, foodPos);
         score -= distance * 2f;
 
-        // Food value bonus
         Food foodComponent = food.GetComponent<Food>();
         if (foodComponent != null)
         {
             score += foodComponent.Points * 3f;
         }
 
-        // Strategy-specific evaluation
         switch (strategy)
         {
             case AIStrategy.Aggressive:
-                // Prefer closer food, ignore safety
                 score += 20f;
                 break;
 
             case AIStrategy.Defensive:
-                // Only pursue if path is safe
                 List<Vector2Int> path = pathfinding.FindPath(headPos, foodPos, obstacles);
                 if (path == null || !IsPathSafe(path, obstacles))
                 {
@@ -209,7 +200,6 @@ public class AIController : MonoBehaviour
                 break;
 
             case AIStrategy.Balanced:
-                // Balance between safety and opportunity
                 path = pathfinding.FindPath(headPos, foodPos, obstacles);
                 if (path != null)
                 {
@@ -232,7 +222,6 @@ public class AIController : MonoBehaviour
     {
         Vector2Int foodGridPos = GridManager.Instance.WorldToGrid(food.transform.position);
 
-        // ✅ Only recalculate if needed
         if (NeedRecalculatePath(food))
         {
             currentPath = pathfinding.FindPath(headPos, foodGridPos, obstacles);
@@ -241,9 +230,9 @@ public class AIController : MonoBehaviour
             if (showDebugInfo)
             {
                 if (currentPath != null)
-                    Debug.Log($"[AI {snake.PlayerName}] 🎯 Path found to food: {currentPath.Count} steps");
+                    Debug.Log($"[AI] 🎯 Path found: {currentPath.Count} steps");
                 else
-                    Debug.LogWarning($"[AI {snake.PlayerName}] ❌ No path to food at {foodGridPos}");
+                    Debug.LogWarning($"[AI] ❌ No path to food at {foodGridPos}");
             }
         }
 
@@ -260,11 +249,11 @@ public class AIController : MonoBehaviour
 
         Vector2Int nextStep = currentPath[0];
 
-        // ✅ Validate next step
+        // ✅ YÊU CẦU 3: KIỂM TRA AN TOÀN TRƯỚC KHI ĐI
         if (!GridManager.Instance.IsValidPosition(nextStep) || obstacles.Contains(nextStep))
         {
             if (showDebugInfo)
-                Debug.LogWarning($"[AI {snake.PlayerName}] ⚠️ Path blocked at {nextStep}, recalculating...");
+                Debug.LogWarning($"[AI] ⚠️ Path blocked at {nextStep}, recalculating...");
 
             currentPath = null;
             targetFood = null;
@@ -272,135 +261,137 @@ public class AIController : MonoBehaviour
             return;
         }
 
-        // ✅ Calculate direction IN GRID SPACE
         Vector2Int direction = nextStep - headPos;
 
         if (showDebugInfo)
-            Debug.Log($"[AI {snake.PlayerName}] Following path: {headPos} → {nextStep}, direction: {direction}");
+            Debug.Log($"[AI] Following path: {headPos} → {nextStep}, direction: {direction}");
 
         SetDirection(direction);
         currentPath.RemoveAt(0);
 
-        // ✅ Clear path if reached food
         if (currentPath.Count == 0)
         {
             targetFood = null;
         }
     }
 
+    // ✅ YÊU CẦU 3: TRÁNH ĐÂM VÀO THÂN
     private void MoveSafely(Vector2Int headPos, List<Vector2Int> obstacles)
     {
-        Vector2Int safeDir = pathfinding.FindSafeDirection(headPos, obstacles);
+        Vector2Int currentDir = snake.GetCurrentDirection();
 
-        if (safeDir != Vector2Int.zero)
+        // ✅ Đánh giá TẤT CẢ hướng có thể
+        Vector2Int[] possibleDirections = {
+            Vector2Int.up,
+            Vector2Int.down,
+            Vector2Int.left,
+            Vector2Int.right
+        };
+
+        float bestScore = float.MinValue;
+        Vector2Int bestDir = Vector2Int.zero;
+
+        foreach (Vector2Int dir in possibleDirections)
+        {
+            // ✅ Không cho phép quay đầu 180°
+            if (dir + currentDir == Vector2Int.zero)
+                continue;
+
+            Vector2Int nextPos = headPos + dir;
+
+            // ✅ Tính điểm an toàn cho hướng này
+            float score = EvaluateDirectionSafety(nextPos, dir, obstacles);
+
+            if (score > bestScore)
+            {
+                bestScore = score;
+                bestDir = dir;
+            }
+        }
+
+        if (bestDir != Vector2Int.zero)
         {
             if (showDebugInfo)
-                Debug.Log($"[AI {snake.PlayerName}] 🛡️ Safe move: {safeDir}");
+                Debug.Log($"[AI] 🛡️ Safe move:  {bestDir} (score: {bestScore: F1})");
 
-            SetDirection(safeDir);
+            SetDirection(bestDir);
         }
         else
         {
             if (showDebugInfo)
-                Debug.LogError($"[AI {snake.PlayerName}] 💀 No safe direction found!");
+                Debug.LogError($"[AI] 💀 No safe direction found!");
         }
     }
 
-    private void HandleDanger(Vector2Int headPos, Vector2Int currentDir, List<Vector2Int> obstacles)
+    // ✅ YÊU CẦU 3: ĐÁNH GIÁ AN TOÀN CHO MỖI HƯỚNG
+    private float EvaluateDirectionSafety(Vector2Int nextPos, Vector2Int direction, List<Vector2Int> obstacles)
     {
-        if (showDebugInfo)
-            Debug.LogWarning($"[AI {snake.PlayerName}] 🚨 DANGER! Emergency evasion!");
+        float score = 0f;
 
-        currentPath = null;
-        targetFood = null;
+        // 1. Kiểm tra va chạm tường
+        if (!GridManager.Instance.IsValidPosition(nextPos))
+        {
+            return -1000f; // ❌ Loại bỏ hoàn toàn
+        }
 
-        // ✅ Try to find escape direction
-        Vector2Int[] emergencyDirs = {
-            new Vector2Int(-currentDir.y, currentDir.x),  // Turn left
-            new Vector2Int(currentDir.y, -currentDir.x),  // Turn right
-            -currentDir  // Turn back (last resort)
+        // 2. Kiểm tra va chạm thân
+        if (obstacles.Contains(nextPos))
+        {
+            return -1000f; // ❌ Loại bỏ hoàn toàn
+        }
+
+        // 3. ✅ LOOK-AHEAD: Kiểm tra các bước tiếp theo
+        for (int i = 1; i <= lookAheadDepth; i++)
+        {
+            Vector2Int futurePos = nextPos + direction * i;
+
+            if (!GridManager.Instance.IsValidPosition(futurePos))
+            {
+                score -= 50f / i; // Càng xa càng ít ảnh hưởng
+            }
+
+            if (obstacles.Contains(futurePos))
+            {
+                score -= 100f / i;
+            }
+        }
+
+        // 4. ✅ Đếm số ô trống xung quanh
+        int freeNeighbors = CountFreeNeighbors(nextPos, obstacles);
+        score += freeNeighbors * 20f;
+
+        // 5. ✅ Ưu tiên hướng có nhiều không gian
+        int spaceAhead = CountSpaceAhead(nextPos, direction, obstacles);
+        score += spaceAhead * 10f;
+
+        // 6. ✅ Tránh góc chết
+        if (freeNeighbors < 2)
+        {
+            score -= 100f; // Penalize dead ends
+        }
+
+        return score;
+    }
+
+    private int CountFreeNeighbors(Vector2Int pos, List<Vector2Int> obstacles)
+    {
+        int count = 0;
+        Vector2Int[] neighbors = {
+            pos + Vector2Int.up,
+            pos + Vector2Int.down,
+            pos + Vector2Int.left,
+            pos + Vector2Int.right
         };
 
-        foreach (Vector2Int dir in emergencyDirs)
+        foreach (Vector2Int neighbor in neighbors)
         {
-            Vector2Int testPos = headPos + dir;
-
-            if (GridManager.Instance.IsValidPosition(testPos) && !obstacles.Contains(testPos))
+            if (GridManager.Instance.IsValidPosition(neighbor) && !obstacles.Contains(neighbor))
             {
-                // ✅ Check if this direction has space
-                int spaceAhead = CountSpaceAhead(testPos, dir, obstacles);
-
-                if (spaceAhead > 0)
-                {
-                    if (showDebugInfo)
-                        Debug.Log($"[AI {snake.PlayerName}] ✅ Emergency escape: {dir} ({spaceAhead} spaces)");
-
-                    SetDirection(dir);
-                    return;
-                }
+                count++;
             }
         }
 
-        // ✅ Last resort: any valid direction
-        Vector2Int lastResort = pathfinding.FindSafeDirection(headPos, obstacles);
-        if (lastResort != Vector2Int.zero)
-        {
-            SetDirection(lastResort);
-        }
-    }
-
-    private bool IsInImmediateDanger(Vector2Int pos, Vector2Int direction, List<Vector2Int> obstacles)
-    {
-        Vector2Int nextPos = pos + direction;
-
-        // ✅ Check wall collision
-        if (!GridManager.Instance.IsValidPosition(nextPos))
-            return true;
-
-        // ✅ Check obstacle collision
-        if (obstacles.Contains(nextPos))
-            return true;
-
-        return false;
-    }
-
-    private bool IsPathSafe(List<Vector2Int> path, List<Vector2Int> obstacles)
-    {
-        if (path == null || path.Count == 0)
-            return false;
-
-        // ✅ Check first 3 steps for dead ends
-        int checkLength = Mathf.Min(path.Count, 3);
-
-        for (int i = 0; i < checkLength; i++)
-        {
-            Vector2Int pos = path[i];
-
-            // Count free neighbors
-            int freeNeighbors = 0;
-            Vector2Int[] neighbors = {
-                pos + Vector2Int.up,
-                pos + Vector2Int.down,
-                pos + Vector2Int.left,
-                pos + Vector2Int.right
-            };
-
-            foreach (Vector2Int neighbor in neighbors)
-            {
-                if (GridManager.Instance.IsValidPosition(neighbor) && !obstacles.Contains(neighbor))
-                {
-                    freeNeighbors++;
-                }
-            }
-
-            // ✅ Need at least 2 exits to avoid dead end
-            if (freeNeighbors < 2)
-            {
-                return false;
-            }
-        }
-
-        return true;
+        return count;
     }
 
     private int CountSpaceAhead(Vector2Int start, Vector2Int direction, List<Vector2Int> obstacles)
@@ -422,6 +413,89 @@ public class AIController : MonoBehaviour
         return count;
     }
 
+    // ✅ YÊU CẦU 3: XỬ LÝ TÌNH HUỐNG NGUY HIỂM
+    private void HandleDanger(Vector2Int headPos, Vector2Int currentDir, List<Vector2Int> obstacles)
+    {
+        if (showDebugInfo)
+            Debug.LogWarning($"[AI] 🚨 DANGER!  Emergency evasion!");
+
+        currentPath = null;
+        targetFood = null;
+
+        // ✅ Thử tất cả hướng khả dụng
+        Vector2Int[] emergencyDirs = {
+            new Vector2Int(-currentDir.y, currentDir.x),  // Turn left
+            new Vector2Int(currentDir.y, -currentDir.x),  // Turn right
+        };
+
+        float bestScore = float.MinValue;
+        Vector2Int bestDir = Vector2Int.zero;
+
+        foreach (Vector2Int dir in emergencyDirs)
+        {
+            Vector2Int testPos = headPos + dir;
+
+            if (GridManager.Instance.IsValidPosition(testPos) && !obstacles.Contains(testPos))
+            {
+                float score = EvaluateDirectionSafety(testPos, dir, obstacles);
+
+                if (score > bestScore)
+                {
+                    bestScore = score;
+                    bestDir = dir;
+                }
+            }
+        }
+
+        if (bestDir != Vector2Int.zero)
+        {
+            if (showDebugInfo)
+                Debug.Log($"[AI] ✅ Emergency escape: {bestDir}");
+
+            SetDirection(bestDir);
+        }
+        else
+        {
+            // Last resort: bất kỳ hướng nào không đâm tường/thân
+            MoveSafely(headPos, obstacles);
+        }
+    }
+
+    private bool IsInImmediateDanger(Vector2Int pos, Vector2Int direction, List<Vector2Int> obstacles)
+    {
+        Vector2Int nextPos = pos + direction;
+
+        if (!GridManager.Instance.IsValidPosition(nextPos))
+            return true;
+
+        if (obstacles.Contains(nextPos))
+            return true;
+
+        return false;
+    }
+
+    private bool IsPathSafe(List<Vector2Int> path, List<Vector2Int> obstacles)
+    {
+        if (path == null || path.Count == 0)
+            return false;
+
+        int checkLength = Mathf.Min(path.Count, 3);
+
+        for (int i = 0; i < checkLength; i++)
+        {
+            Vector2Int pos = path[i];
+
+            int freeNeighbors = CountFreeNeighbors(pos, obstacles);
+
+            if (freeNeighbors < 2)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
     private bool NeedRecalculatePath(GameObject food)
     {
         if (currentPath == null || currentPath.Count == 0)
@@ -430,7 +504,6 @@ public class AIController : MonoBehaviour
         if (targetFood != food)
             return true;
 
-        // ✅ Recalculate if food moved (edge case)
         if (targetFood != null)
         {
             Vector2Int foodGridPos = GridManager.Instance.WorldToGrid(food.transform.position);
@@ -447,11 +520,10 @@ public class AIController : MonoBehaviour
     {
         Vector2Int currentDir = snake.GetCurrentDirection();
 
-        // ✅ Prevent 180° turn
         if (direction == -currentDir)
         {
             if (showDebugInfo)
-                Debug.LogWarning($"[AI {snake.PlayerName}] ⚠️ Attempted illegal 180° turn");
+                Debug.LogWarning($"[AI] ⚠️ Attempted illegal 180° turn");
             return;
         }
 
@@ -502,7 +574,6 @@ public class AIController : MonoBehaviour
         if (GridManager.Instance == null || snake == null)
             return;
 
-        // Draw path
         Gizmos.color = Color.cyan;
         for (int i = 0; i < currentPath.Count - 1; i++)
         {
@@ -511,13 +582,11 @@ public class AIController : MonoBehaviour
             Gizmos.DrawLine(from, to);
         }
 
-        // Draw current head position
         Gizmos.color = Color.green;
         Vector2Int headPos = snake.GetHeadPosition();
         Vector3 headWorld = GridManager.Instance.GridToWorld(headPos);
         Gizmos.DrawWireSphere(headWorld, GridManager.Instance.CellSize * 0.3f);
 
-        // Draw target food
         if (targetFood != null)
         {
             Gizmos.color = Color.yellow;

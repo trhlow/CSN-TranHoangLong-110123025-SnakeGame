@@ -83,7 +83,7 @@ public class LocalizationManager : Singleton<LocalizationManager>
         AddString("ui.game_over.wins", "Thắng!", "Wins!");
         AddString("ui.game_over.player_wins", "Người Chơi Thắng!", "Player Wins!");
         AddString("ui.game_over.ai_wins", "Máy Thắng!", "AI Wins!");
-        AddString("ui. game_over.final_score", "Điểm Cuối", "Final Score");
+        AddString("ui.game_over.final_score", "Điểm Cuối", "Final Score");
         AddString("ui.game_over.new_high_score", "ĐIỂM CAO MỚI!", "NEW HIGH SCORE!");
         AddString("ui.game_over.restart", "Chơi Lại", "Restart");
         AddString("ui.game_over.main_menu", "Menu Chính", "Main Menu");
@@ -107,8 +107,10 @@ public class LocalizationManager : Singleton<LocalizationManager>
         AddString("settings.music_volume", "Âm Lượng Nhạc", "Music Volume");
         AddString("settings.sfx_volume", "Âm Lượng Hiệu Ứng", "SFX Volume");
         AddString("settings.snake_color", "Màu Rắn", "Snake Color");
+        AddString("settings.changename", "Đổi Tên", "Change Name");
+        AddString("settings.yourname", "Tên Của Bạn", "Your Name");
         AddString("settings.back", "Quay Lại", "Back");
-        AddString("settings.reset", "Đặt Lại", "Reset");
+        AddString("settings.apply", "Áp Dụng", "Apply");
 
         // High Scores
         AddString("highscore.title", "BẢNG XẾP HẠNG", "HIGH SCORES");

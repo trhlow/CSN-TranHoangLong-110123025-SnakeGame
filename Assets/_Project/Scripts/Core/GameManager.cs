@@ -4,9 +4,6 @@ using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.SceneManagement;
 
-/// <summary>
-/// ✅ FULL DEBUG VERSION - Snake spawn với logs đầy đủ
-/// </summary>
 public class GameManager : Singleton<GameManager>
 {
     public enum GameState { MainMenu, Playing, Paused, GameOver, Loading }
@@ -55,7 +52,6 @@ public class GameManager : Singleton<GameManager>
         Debug.Log("[GameManager] 🎬 Awake() called");
     }
 
-    // ✅ FIX: Start() với logs đầy đủ
     private void Start()
     {
         string sceneName = SceneManager.GetActiveScene().name;
@@ -68,23 +64,18 @@ public class GameManager : Singleton<GameManager>
         }
         else if (sceneName == "Gameplay")
         {
-            Debug.Log("[GameManager] 🎮 Gameplay scene detected, starting initialization...");
-
-            // ✅ Load game mode từ PlayerPrefs
+            Debug.Log("[GameManager] 🎮 Gameplay scene detected, starting initialization.. .");
             LoadGameMode();
-
-            // ✅ Đợi 1 frame để scene load xong
             StartCoroutine(InitializeGameplayDelayed());
         }
     }
 
-    // ✅ NEW: Coroutine để đợi scene load hoàn toàn
     private IEnumerator InitializeGameplayDelayed()
     {
         Debug.Log("[GameManager] ⏳ Waiting for scene to fully load...");
         yield return new WaitForEndOfFrame();
 
-        Debug.Log($"[GameManager] ✅ Scene loaded! Initializing with mode: {gameMode}");
+        Debug.Log($"[GameManager] ✅ Scene loaded!  Initializing with mode: {gameMode}");
         InitializeGameplay();
     }
 
@@ -119,7 +110,7 @@ public class GameManager : Singleton<GameManager>
         if (currentState == newState)
             return;
 
-        Debug.Log($"[GameManager] 🔄 State: {currentState} → {newState}");
+        Debug.Log($"[GameManager] 🔄 State:  {currentState} → {newState}");
         currentState = newState;
         OnGameStateChanged?.Invoke(newState);
 
@@ -180,20 +171,18 @@ public class GameManager : Singleton<GameManager>
         }
         else
         {
-            Debug.LogWarning("[GameManager] ⚠️ No saved GameMode found, using default: SinglePlayer");
+            Debug.LogWarning("[GameManager] ⚠️ No saved GameMode found, using default:  SinglePlayer");
             gameMode = GameMode.SinglePlayer;
         }
     }
     #endregion
 
     #region Scene Management
-    // ✅ FIX: LoadGameplay với logs đầy đủ
     public void LoadGameplay()
     {
-        Debug.Log($"[GameManager] ⚙️ LoadGameplay called! Mode: {gameMode}");
+        Debug.Log($"[GameManager] ⚙️ LoadGameplay called!  Mode: {gameMode}");
         Debug.Log($"[GameManager] 📍 Current scene: {SceneManager.GetActiveScene().name}");
 
-        // Save game mode
         PlayerPrefs.SetInt("GameMode", (int)gameMode);
         PlayerPrefs.Save();
         Debug.Log($"[GameManager] 💾 Saved GameMode to PlayerPrefs: {gameMode}");
@@ -225,14 +214,13 @@ public class GameManager : Singleton<GameManager>
     {
         if (currentState == GameState.Paused)
         {
-            Debug.Log("[GameManager] ▶️ Resuming game...");
+            Debug.Log("[GameManager] ▶️ Resuming game.. .");
             ChangeState(GameState.Playing);
         }
     }
     #endregion
 
     #region Gameplay Initialization
-    // ✅ FIX: InitializeGameplay với debug logs
     private void InitializeGameplay()
     {
         Debug.Log($"[GameManager] ⚙️ InitializeGameplay START - Mode: {gameMode}");
@@ -252,7 +240,7 @@ public class GameManager : Singleton<GameManager>
         }
         else
         {
-            Debug.LogError("[GameManager] ❌ FoodSpawner.Instance is NULL!");
+            Debug.LogError("[GameManager] ❌ FoodSpawner. Instance is NULL!");
         }
 
         if (AudioManager.Instance != null)
@@ -262,36 +250,33 @@ public class GameManager : Singleton<GameManager>
 
         ChangeState(GameState.Playing);
 
-        Debug.Log($"[GameManager] ✅ InitializeGameplay DONE! Spawned {snakes.Count} snake(s)");
+        Debug.Log($"[GameManager] ✅ InitializeGameplay DONE!  Spawned {snakes.Count} snake(s)");
     }
 
-    // ✅ FIX: SpawnAllSnakes với debug logs đầy đủ
     private void SpawnAllSnakes()
     {
-        Debug.Log($"[GameManager] 🐍 SpawnAllSnakes START - Mode: {gameMode}");
+        Debug.Log($"[GameManager] 🐍 SpawnAllSnakes START - Mode:  {gameMode}");
 
-        // Check prefabs
         if (playerSnakePrefab == null)
         {
-            Debug.LogError("[GameManager] ❌❌❌ playerSnakePrefab is NULL! Assign it in Inspector!");
+            Debug.LogError("[GameManager] ❌❌❌ playerSnakePrefab is NULL!  Assign it in Inspector!");
             return;
         }
 
-        // ✅ FIX: Spawn Player 1 với màu đã lưu
-        Vector3 player1SpawnPos = new Vector3(-spawnDistanceFromCenter, 0, 0);
-        Color playerColor = LoadSnakeColor(1, Color.green); // Load màu đã chọn trong Settings
+        Vector3 playerSpawnPos = new Vector3(-spawnDistanceFromCenter, 0, 0);
+        Color playerColor = LoadSnakeColor(1, Color.green);
         Debug.Log($"[GameManager] 🎨 Player color: #{ColorUtility.ToHtmlStringRGB(playerColor)}");
 
-        // ✅ Lấy tên từ PlayerNameManager
         string playerName = PlayerNameManager.Instance != null ? PlayerNameManager.Instance.PlayerName : "Người chơi";
         Debug.Log($"[GameManager] 👤 Player name: {playerName}");
+
         var player = SpawnSnake(
             prefab: playerSnakePrefab,
             id: 1,
             color: playerColor,
             isAI: false,
-            name: playerName, // ✅ Dùng tên thật
-            spawnPos: player1SpawnPos,
+            name: playerName,
+            spawnPos: playerSpawnPos,
             keyUp: KeyCode.W,
             keyDown: KeyCode.S,
             keyLeft: KeyCode.A,
@@ -302,25 +287,24 @@ public class GameManager : Singleton<GameManager>
         {
             snakes.Add(player);
             InitializeComboTracker(1);
-            Debug.Log($"[GameManager] ✅ Player 1 spawned successfully at {player1SpawnPos}");
+            Debug.Log($"[GameManager] ✅ Player spawned successfully at {playerSpawnPos}");
         }
         else
         {
-            Debug.LogError("[GameManager] ❌ Failed to spawn Player 1!");
+            Debug.LogError("[GameManager] ❌ Failed to spawn Player!");
         }
 
-        // Spawn AI if VsAI mode
         if (gameMode == GameMode.VsAI)
         {
-            Debug.Log("[GameManager] 🤖 VsAI mode detected, spawning AI...");
+            Debug.Log("[GameManager] 🤖 VsAI mode detected, spawning AI.. .");
 
             GameObject aiBotPrefab = aiSnakePrefab != null ? aiSnakePrefab : playerSnakePrefab;
             Vector3 aiSpawnPos = new Vector3(spawnDistanceFromCenter, 0, 0);
             Debug.Log($"[GameManager] 📍 AI spawn position: {aiSpawnPos}");
-            
-            // ✅ FIX: AI luôn là màu cyan, không load từ Settings
+
             Color aiColor = Color.cyan;
             Debug.Log($"[GameManager] 🤖 AI color: #{ColorUtility.ToHtmlStringRGB(aiColor)} (CYAN - Fixed)");
+
             var ai = SpawnSnake(
                 prefab: aiBotPrefab,
                 id: 3,
@@ -346,11 +330,12 @@ public class GameManager : Singleton<GameManager>
             Debug.Log("[GameManager] ℹ️ SinglePlayer mode, no AI spawn needed");
         }
 
-        Debug.Log($"[GameManager] 🎮 SpawnAllSnakes DONE. Total snakes: {snakes.Count}");
+        Debug.Log($"[GameManager] 🎮 SpawnAllSnakes DONE.  Total snakes: {snakes.Count}");
     }
+
     public void SaveSnakeColor(int playerID, Color color)
     {
-        string key = "PlayerSnakeColor"; // ✅ Xoá playerID
+        string key = "PlayerSnakeColor";
         string colorHex = "#" + ColorUtility.ToHtmlStringRGB(color);
         PlayerPrefs.SetString(key, colorHex);
         PlayerPrefs.Save();
@@ -358,7 +343,7 @@ public class GameManager : Singleton<GameManager>
 
     public Color LoadSnakeColor(int playerID, Color defaultColor)
     {
-        string key = "PlayerSnakeColor"; // ✅ Xoá playerID
+        string key = "PlayerSnakeColor";
         if (PlayerPrefs.HasKey(key))
         {
             if (ColorUtility.TryParseHtmlString(PlayerPrefs.GetString(key), out Color savedColor))
@@ -366,6 +351,7 @@ public class GameManager : Singleton<GameManager>
         }
         return defaultColor;
     }
+
     private SnakeController SpawnSnake(GameObject prefab, int id, Color color, bool isAI, string name,
         Vector3 spawnPos, KeyCode keyUp = KeyCode.W, KeyCode keyDown = KeyCode.S,
         KeyCode keyLeft = KeyCode.A, KeyCode keyRight = KeyCode.D)
@@ -376,7 +362,7 @@ public class GameManager : Singleton<GameManager>
             return null;
         }
 
-        Debug.Log($"[GameManager] 🐍 Instantiating {name} at {spawnPos}...");
+        Debug.Log($"[GameManager] 🐍 Instantiating {name} at {spawnPos}.. .");
         GameObject snakeObj = Instantiate(prefab, spawnPos, Quaternion.identity);
         snakeObj.name = name;
 
@@ -398,22 +384,6 @@ public class GameManager : Singleton<GameManager>
         return snake;
     }
 
-    private Color GetPlayerColor(int playerID)
-    {
-        if (ColorPalette.Instance != null)
-        {
-            return ColorPalette.Instance.GetPlayerColor(playerID);
-        }
-
-        return playerID switch
-        {
-            1 => Color.green,
-            2 => Color.magenta,
-            3 => Color.cyan,
-            _ => Color.white
-        };
-    }
-
     private void ClearSnakes()
     {
         Debug.Log($"[GameManager] 🧹 Clearing {snakes.Count} snake(s)...");
@@ -431,10 +401,46 @@ public class GameManager : Singleton<GameManager>
     #endregion
 
     #region Event Handlers
+    // ✅ YÊU CẦU 4: AI chết → Player thắng
     private void OnSnakeDied(SnakeController snake)
     {
-        Debug.Log($"<color=red>💀 {snake.PlayerName} died! Final Score: {snake.Score}</color>");
+        Debug.Log($"<color=red>💀 {snake.PlayerName} died!  Final Score: {snake.Score}</color>");
 
+        // ✅ KIỂM TRA CHẾ ĐỘ VS AI
+        if (gameMode == GameMode.VsAI)
+        {
+            // Nếu AI chết → Player thắng
+            if (snake.IsAIControlled)
+            {
+                Debug.Log("[GameManager] 🏆 AI died → PLAYER WINS!");
+
+                // Dừng game
+                if (FoodSpawner.Instance != null)
+                {
+                    FoodSpawner.Instance.StopAutoSpawn();
+                }
+
+                // Disable tất cả snakes
+                foreach (var s in snakes)
+                {
+                    if (s != null)
+                    {
+                        s.enabled = false;
+                    }
+                }
+
+                // ✅ Hiện panel winner với Player là người thắng
+                ChangeState(GameState.GameOver);
+                return;
+            }
+            // Nếu Player chết → AI thắng (tiếp tục xử lý bình thường)
+            else
+            {
+                Debug.Log("[GameManager] 💀 Player died → AI WINS!");
+            }
+        }
+
+        // Stop game
         if (FoodSpawner.Instance != null)
         {
             FoodSpawner.Instance.StopAutoSpawn();
@@ -523,25 +529,57 @@ public class GameManager : Singleton<GameManager>
     #endregion
 
     #region Game Over Handling
+    // ✅ YÊU CẦU 4:  Xác định winner đúng trong VS AI
     private void HandleGameOver()
     {
         Debug.Log("[GameManager] 🏁 Game Over!");
 
-        if (HighScoreManager.Instance != null && snakes.Count > 0)
+        // ✅ Tìm snake thắng cuộc
+        SnakeController winner = null;
+        int highestScore = 0;
+
+        // Trong VS AI:  Kiểm tra snake nào còn sống
+        if (gameMode == GameMode.VsAI)
         {
-            var topSnake = GetTopScoreSnake();
-            if (topSnake != null)
+            foreach (var snake in snakes)
             {
-                HighScoreManager.Instance.TryAddHighScore(topSnake.PlayerName, topSnake.Score);
+                if (snake != null && !snake.IsDead)
+                {
+                    winner = snake; // Snake còn sống = thắng
+                    highestScore = snake.Score;
+                    Debug.Log($"[GameManager] 🏆 Winner:  {snake.PlayerName} (still alive)");
+                    break;
+                }
+            }
+
+            // Nếu cả 2 đều chết (hiếm) → so điểm
+            if (winner == null)
+            {
+                winner = GetTopScoreSnake();
+                highestScore = winner != null ? winner.Score : 0;
+                Debug.Log($"[GameManager] 🏆 Winner by score: {winner?.PlayerName}");
             }
         }
+        else
+        {
+            // SinglePlayer: chỉ có 1 snake
+            winner = GetTopScoreSnake();
+            highestScore = winner != null ? winner.Score : 0;
+        }
 
+        // Save high score
+        if (HighScoreManager.Instance != null && winner != null)
+        {
+            HighScoreManager.Instance.TryAddHighScore(winner.PlayerName, winner.Score);
+        }
+
+        // ✅ Hiện UI Game Over
         if (UIManager.Instance != null)
         {
-            int winnerID = GetWinnerID();
-            int highestScore = GetHighestScore();
-            bool hasWinner = snakes.Count > 1;
+            bool hasWinner = (gameMode == GameMode.VsAI); // VS AI luôn có winner
+            int winnerID = winner != null ? winner.PlayerID : 1;
 
+            Debug.Log($"[GameManager] 📊 ShowGameOver: hasWinner={hasWinner}, winnerID={winnerID}, score={highestScore}");
             UIManager.Instance.ShowGameOver(hasWinner, highestScore, winnerID);
         }
     }
