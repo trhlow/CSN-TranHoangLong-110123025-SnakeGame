@@ -1,4 +1,4 @@
-# Snake Game - Multiplayer
+# Snake Game
 
 Unity 2D Snake Game với hệ thống customization.
 
