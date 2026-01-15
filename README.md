@@ -1,200 +1,206 @@
-🐍 Snake Game (Unity) — Đồ án Cơ sở Ngành CNTT
+# 🐍 Snake Game (Unity / C#)
 
-Học kỳ 1 – Năm học 2024–2025
+### Academic Project – Game Development Fundamentals
 
-📌 Giới thiệu
+**Snake Game** là một dự án game 2D được phát triển bằng **Unity (C#)**, dựa trên gameplay “Rắn săn mồi” cổ điển.
+Dự án tập trung vào **gameplay logic, điều khiển nhân vật, xử lý va chạm, quản lý trạng thái game và UI cơ bản**, phù hợp làm **portfolio cho vị trí Game Developer Intern / Fresher Unity Developer**.
 
-Snake Game là đồ án môn Cơ sở ngành CNTT, được phát triển bằng Unity (C#). Trò chơi mô phỏng lối chơi “Rắn săn mồi” cổ điển, nơi người chơi điều khiển rắn di chuyển trên lưới, ăn thức ăn để tăng độ dài và ghi điểm, đồng thời tránh va chạm với tường hoặc chính thân rắn.
+---
 
-👤 Thông tin sinh viên
+## 👨‍💻 Developer
 
-Họ tên: Trần Hoàng Long
+* **Name:** Trần Hoàng Long
+* **Student ID:** 110123025
+* **Major:** Information Technology
+* **Course:** Core IT Foundations (HK1 – 2024–2025)
+* **Supervisor:** Khấu Văn Nhựt
 
-MSSV: 110123025
+---
 
-Môn học: Cơ sở ngành CNTT
+## 🔗 Project Links
 
-Học kỳ: HK1 (2024–2025)
+* **GitHub Repository:**
+  [https://github.com/trhlow/CSN-TranHoangLong-110123025-SnakeGame](https://github.com/trhlow/CSN-TranHoangLong-110123025-SnakeGame)
+* **Active Branch:** new
 
-Giảng viên hướng dẫn: Khấu Văn Nhựt
+---
 
-🔗 Repository
+## 🎯 Project Goals
 
-GitHub:
+* Xây dựng một game 2D hoàn chỉnh bằng **Unity + C#**
+* Áp dụng các kiến thức nền tảng:
 
-https://github.com/trhlow/CSN-TranHoangLong-110123025-SnakeGame
+  * Game loop
+  * Player input handling
+  * Collision detection
+  * State management (Playing / Game Over / Restart)
+* Rèn luyện tư duy **tách logic – quản lý đối tượng – tổ chức code**
 
-🎮 Demo
+---
 
-🎥 Video / GIF demo: (chưa có / sẽ cập nhật)
+## ✨ Key Features
 
-🕹️ Bản build:
+* 2D **grid-based snake movement**
+* 4-direction player input (Keyboard)
+* Food spawning & snake growth mechanic
+* Score tracking system
+* **Self-collision & wall-collision detection**
+* Game states:
 
-Windows: (nếu có)
+  * Playing
+  * Game Over
+  * Restart
+* Basic UI:
 
-macOS: (nếu có)
+  * Score display
+  * Game Over state
 
-WebGL: (nếu có)
+---
 
-✨ Tính năng chính
+## 🛠️ Tech Stack
 
-Điều khiển rắn di chuyển theo 4 hướng
+* **Engine:** Unity **6000.2.7f2**
+* **Language:** C#
+* **Rendering:** 2D
+* **Shaders:** ShaderLab, HLSL
+* **Platform:** PC (Editor), expandable to WebGL
 
-Cơ chế ăn mồi → tăng độ dài
+**GitHub language usage:**
 
-Hệ thống tính điểm
+* C#: ~65%
+* ShaderLab: ~29%
+* HLSL: ~6%
 
-Xử lý thua cuộc (Game Over) khi:
+---
 
-Va chạm với tường
+## 🎮 Gameplay Overview
 
-Va chạm với thân rắn (self-collision)
+* Snake moves continuously in the current direction.
+* Eating food:
 
-Chơi lại (Restart) nhanh chóng
+  * Increases score
+  * Increases snake length
+* Game ends when the snake:
 
-Giao diện UI:
+  * Hits the wall
+  * Collides with its own body
 
-Hiển thị điểm số
+---
 
-Trạng thái game (Playing / Game Over / Pause – nếu có)
+## ⌨️ Controls
 
-🛠️ Công nghệ sử dụng
+| Action             | Key         |
+| ------------------ | ----------- |
+| Move Up            | `W` / `↑`   |
+| Move Down          | `S` / `↓`   |
+| Move Left          | `A` / `←`   |
+| Move Right         | `D` / `→`   |
+| Pause *(optional)* | `Esc` / `P` |
+| Restart            | `R`         |
 
-Game Engine: Unity 2022.3.x LTS (hoặc phiên bản bạn dùng)
+---
 
-Ngôn ngữ: C#
+## 🧠 Technical Implementation Highlights
 
-Đồ họa / Shader: ShaderLab, HLSL (nếu có)
+* **Grid-based movement** to ensure precise and predictable snake behavior
+* Food spawning logic avoids overlapping with snake body
+* Collision handling via:
 
-Mô hình: 2D Grid-based
+  * `OnTriggerEnter2D` / `OnCollisionEnter2D`
+* Modular code structure (separation of concerns):
 
-Language breakdown (GitHub):
+  * GameManager` – game state & flow control
+  * SnakeController` – movement & body growth
+  * FoodSpawner` – food generation logic
+  * UIManager` – score & state display
 
-C#: ~65%
+---
 
-ShaderLab: ~29%
+## 📁 Project Structure
 
-HLSL: ~6%
+text
+Assets/
+├── Scripts/
+│   ├── GameManager.cs
+│   ├── SnakeController.cs
+│   ├── FoodSpawner.cs
+│   └── UIManager.cs
+├── Scenes/
+│   └── MainScene.unity
+├── Prefabs/
+│   ├── Snake.prefab
+│   └── Food.prefab
+├── Shaders/
+└── Resources/
+Packages/
+ProjectSettings/
+```
 
-📁 Cấu trúc thư mục 
-Assets/ │ ├── Scripts/ # Logic gameplay (Snake, Food, GameManager, UI…) 
-          ├── Scenes/ # Scene chính của game 
-          ├── Prefabs/ # Prefab rắn, thức ăn, UI 
-          ├── Shaders/ # Shader / hiệu ứng hình ảnh 
-          │ ProjectSettings/ # Cấu hình project Unity
+---
 
-▶️ Hướng dẫn chạy project Yêu cầu
+## ▶️ Run the Project
 
-Unity Hub
+### Requirements
 
-Unity phiên bản: 2022.3.x LTS (hoặc đúng phiên bản project)
+* Unity Hub
+* Unity Editor **6000.2.7f2**
+* Git
 
-Git
+### Steps
 
-Các bước
-
-Clone repository:
-
+```bash
 git clone https://github.com/trhlow/CSN-TranHoangLong-110123025-SnakeGame.git
+cd CSN-TranHoangLong-110123025-SnakeGame
+```
 
-Mở Unity Hub → Add project → chọn thư mục vừa clone.
+1. Open **Unity Hub** → **Add Project**
+2. Select project folder
+3. Open `Assets/Scenes/MainScene.unity`
+4. Press **Play**
 
-Mở scene chính:
+---
 
-Assets/Scenes/MainScene.unity
+## 📄 Documentation
 
-Nhấn Play để chạy game.
+This repository includes academic documentation:
 
-🕹️ Cách chơi
+* 📘 Final report (PDF)
+* 📊 Presentation slides
+* 🖼️ Poster
 
-Người chơi điều khiển rắn di chuyển liên tục trên bản đồ
+> These documents demonstrate the ability to **explain design decisions and technical implementation**, not only coding.
 
-Ăn thức ăn để:
+---
 
-Tăng điểm
+## 🚀 Future Improvements
 
-Tăng độ dài rắn
+* Difficulty scaling (speed increase over time)
+* Sound effects & background music
+* Mobile (touch) controls
+* High-score persistence (PlayerPrefs)
+* WebGL build & online demo
 
-Tránh:
+---
 
-Đâm vào tường
+## 📌 Why This Project Matters
 
-Đâm vào thân rắn
+This project demonstrates:
 
-🎯 Điều khiển (Controls) Hành động Phím Lên W / ↑ Xuống S / ↓ Trái A / ← Phải D / → Pause (nếu có) Esc / P Restart (nếu có) R 📜 Luật chơi
+* Solid understanding of **Unity fundamentals**
+* Ability to complete a **full gameplay loop**
+* Clean and structured C# scripting
+* Readiness for **Game Developer Intern / Fresher Unity Developer** roles
 
-Rắn di chuyển liên tục theo hướng hiện tại
+---
 
-Khi ăn thức ăn:
+## 📜 License
 
-+1 điểm
+Educational project – **All rights reserved**.
+(Open to re-licensing if required.)
 
-Tăng 1 đốt thân
+---
 
-Có thể tăng tốc độ (chưa triển khai)
+### 📬 Contact
 
-Game kết thúc khi:
+If you’re a recruiter or reviewer and would like to know more about this project or my skills, feel free to reach out via GitHub.
 
-Rắn va chạm với tường
-
-Rắn va chạm với chính thân của nó
-
-⚙️ Ghi chú kỹ thuật
-
-Game sử dụng grid-based movement để đảm bảo di chuyển chính xác
-
-Thức ăn được spawn ngẫu nhiên và không trùng vị trí thân rắn
-
-Xử lý va chạm bằng:
-
-OnTriggerEnter2D / OnCollisionEnter2D
-
-Kiến trúc tách biệt:
-
-GameManager
-
-SnakeController
-
-FoodSpawner
-
-UI Manager
-
-🏗️ Build game Build cho Windows / macOS
-
-Unity → File → Build Settings
-
-Chọn PC, Mac & Linux Standalone
-
-Add Open Scenes
-
-Build
-
-Build WebG
-
-Build Settings → chọn WebGL
-
-Switch Platform
-
-Build
-
-Upload lên GitHub Pages hoặc itch.io
-
-📄 Báo cáo & tài liệu
-
-📘 Báo cáo đồ án: 
-
-📊 Slide thuyết trình: 
-
-🤝 Đóng góp
-
-Repository này phục vụ mục đích học tập. Mọi góp ý hoặc cải tiến đều được hoan nghênh thông qua:
-
-Issue
-
-Pull Request
-
-📜 License
-
-Dự án phục vụ mục đích học tập
-
-All rights reserved (Có thể đổi sang MIT License nếu muốn public hoàn toàn)
