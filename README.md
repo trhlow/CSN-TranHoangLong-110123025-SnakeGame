@@ -17,7 +17,7 @@ Môn học: Cơ sở ngành CNTT
 
 Học kỳ: HK1 (2024–2025)
 
-Giảng viên hướng dẫn: (nếu có)
+Giảng viên hướng dẫn: Khấu Văn Nhựt
 
 🔗 Repository
 
