@@ -23,9 +23,6 @@ Repo có kèm các file phục vụ báo cáo và thuyết trình:
 - Poster: `Poster.pdf`, `POSTERPDFFINAL.pdf`
 - Slide: `slideCSN.pptx`
 - Gói nén (nếu cần): `SnakeGame.rar`
-
-> Gợi ý: Nếu bạn muốn repo “đẹp mắt với nhà tuyển dụng”, nên cân nhắc đưa các file nặng (PDF/PPT/RAR) vào thư mục `docs/` hoặc dùng GitHub Releases, để root repo gọn hơn.
-
 ---
 
 ## Tính năng chính
